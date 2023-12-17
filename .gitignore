@@ -11,3 +11,6 @@ sound/pci/hdsp/hdspe/*.o
 sound/pci/hdsp/hdspe/*.ko
 sound/pci/hdsp/hdspe/*.mod
 sound/pci/hdsp/hdspe/*.mod.c
+
+# sym links created by builds
+alsa-hdspe-0.0

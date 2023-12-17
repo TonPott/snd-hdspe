@@ -624,11 +624,94 @@ static void snd_hdspe_remove(struct pci_dev *pci)
 	snd_card_free(pci_get_drvdata(pci));
 }
 
+static int __maybe_unused snd_hdspe_suspend(struct pci_dev *dev, pm_message_t state)
+{
+	/* (1) Accessing HDSPe data */
+	struct snd_card *card = pci_get_drvdata(dev);
+	if (!card) {
+		return -ENODEV;
+	}
+
+	struct hdspe *hdspe = card->private_data;
+	if (!hdspe) {
+		return -ENODEV;
+	}
+
+
+	/* (2) Change ALSA power state */
+	snd_power_change_state(card, SNDRV_CTL_POWER_D3hot);
+
+	/* (3) Save register values */
+	/* Save the necessary register values in hdspe struct */
+	spin_lock_irq(&hdspe->lock);
+	hdspe->savedRegisters = hdspe->reg;
+	spin_unlock_irq(&hdspe->lock);
+
+	/* (4) Stop hardware operations */
+	/* Stop interrupts and halt any ongoing operations */
+	hdspe_stop_interrupts(hdspe);
+	cancel_work_sync(&hdspe->midi_work);
+	cancel_work_sync(&hdspe->status_work);
+
+	/* (5) Enter low-power state */
+	/* Place the hardware into a low-power mode, not sure if that is available for HDSPe? */
+
+	return 0;
+}
+
+static int __maybe_unused snd_hdspe_resume(struct pci_dev *dev)
+{
+	/* (1) Accessing HDSPe data */
+	struct snd_card *card = pci_get_drvdata(dev);
+	if (!card) {
+		return -ENODEV;
+	}
+
+	struct hdspe *hdspe = card->private_data;
+	if (!hdspe) {
+		return -ENODEV;
+	}
+
+
+	/* (2) Reinitialize the chip */
+	/* Perform any necessary reinitialization steps after resume */
+	/* Unclear what HDSPe needs to have reinitialized? */
+
+	/* (3) Restore saved register values */
+	/* Restore the register values saved during suspend */
+	spin_lock_irq(&hdspe->lock);
+	hdspe->reg = hdspe->savedRegisters;
+	spin_unlock_irq(&hdspe->lock);
+
+	/* (4) Update hardware with restored register values */
+	/* Write restored register values to the hardware */
+	hdspe_write_control(hdspe);
+
+	/* Resume mixer? hdspe_init_mixer just allocates memory ... */
+
+	/* (5) Restart the chip or hardware */
+	/* Restart any halted hardware or operations */
+	spin_lock_init(&hdspe->lock);
+	INIT_WORK(&hdspe->midi_work, hdspe_midi_work);
+	INIT_WORK(&hdspe->status_work, hdspe_status_work);
+	hdspe_start_interrupts(hdspe);
+
+	/* (6) Return ALSA to full power state */
+	snd_power_change_state(card, SNDRV_CTL_POWER_D0);
+
+	return 0;
+}
+
+
 static struct pci_driver hdspe_driver = {
 	.name = KBUILD_MODNAME,
 	.id_table = snd_hdspe_ids,
 	.probe = snd_hdspe_probe,
 	.remove = snd_hdspe_remove,
+#ifdef CONFIG_PM
+	.suspend = snd_hdspe_suspend,
+	.resume = snd_hdspe_resume,
+#endif
 };
 
 module_pci_driver(hdspe_driver);

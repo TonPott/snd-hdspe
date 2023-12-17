@@ -1008,6 +1008,8 @@ struct hdspe {
 		union hdspe_status0_reg  status0; /* read at every interrupt */
 	} reg;
 
+	struct reg savedRegisters;
+
 	u64 frame_count;            /* current period frame counter */
 	u32 hw_pointer_wrap_count;  /* hw pointer wrapped this many times */
 	u32 last_hw_pointer;        /* previous period hw pointer */

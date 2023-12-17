@@ -537,9 +537,11 @@ static int snd_hdspe_trigger(struct snd_pcm_substream *substream, int cmd)
 	running = hdspe->running;
 	switch (cmd) {
 	case SNDRV_PCM_TRIGGER_START:
+	case SNDRV_PCM_TRIGGER_RESUME:
 		running |= 1 << substream->stream;
 		break;
 	case SNDRV_PCM_TRIGGER_STOP:
+	case SNDRV_PCM_TRIGGER_SUSPEND:
 		running &= ~(1 << substream->stream);
 		break;
 	default:
@@ -557,14 +559,14 @@ static int snd_hdspe_trigger(struct snd_pcm_substream *substream, int cmd)
 		snd_pcm_group_for_each_entry(s, substream) {
 			if (s == other) {
 				snd_pcm_trigger_done(s, substream);
-				if (cmd == SNDRV_PCM_TRIGGER_START)
+				if (cmd == SNDRV_PCM_TRIGGER_START || SNDRV_PCM_TRIGGER_RESUME)
 					running |= 1 << s->stream;
 				else
 					running &= ~(1 << s->stream);
 				goto _ok;
 			}
 		}
-		if (cmd == SNDRV_PCM_TRIGGER_START) {
+		if (cmd == SNDRV_PCM_TRIGGER_START || SNDRV_PCM_TRIGGER_RESUME) {
 			if (!(running & (1 << SNDRV_PCM_STREAM_PLAYBACK))
 					&& substream->stream ==
 					SNDRV_PCM_STREAM_CAPTURE)

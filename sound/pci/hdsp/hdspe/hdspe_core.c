@@ -108,6 +108,9 @@ static irqreturn_t snd_hdspe_interrupt(int irq, void *dev_id)
 {
 	struct hdspe *hdspe = (struct hdspe *) dev_id;
 	int i, audio, midi, schedule = 0;
+	if (hdspe->irq_count % 1000 == 0) {
+		dev_dbg(hdspe->card->dev, "Interrupt #%d received\n", hdspe->irq_count);
+	}
 
 	hdspe->reg.status0 = hdspe_read_status0_nocache(hdspe);
 
@@ -134,6 +137,10 @@ static irqreturn_t snd_hdspe_interrupt(int irq, void *dev_id)
 		return IRQ_NONE;
 
 	if (audio) {
+		if (hdspe->irq_count % 1000 == 0) {
+			dev_dbg(hdspe->card->dev, "Audio interrupt \n");
+		}
+
 		hdspe_write(hdspe, HDSPE_interruptConfirmation, 0);
 		hdspe->irq_count++;
 		
@@ -161,6 +168,10 @@ static irqreturn_t snd_hdspe_interrupt(int irq, void *dev_id)
 	}
 
 	if (midi) {
+		if (hdspe->irq_count % 1000 == 0) {
+			dev_dbg(hdspe->card->dev, "MIDI interrupt \n");
+		}
+
 		schedule = 0;
 		for (i = 0; i < hdspe->midiPorts; i++) {
 			if ((hdspe_read(hdspe,
@@ -637,6 +648,7 @@ static int __maybe_unused snd_hdspe_suspend(struct pci_dev *dev, pm_message_t st
 		return -ENODEV;
 	}
 
+	dev_dbg(hdspe->card->dev, "Suspending HDSPe driver\n");
 
 	/* (2) Change ALSA power state */
 	snd_power_change_state(card, SNDRV_CTL_POWER_D3hot);
@@ -656,6 +668,7 @@ static int __maybe_unused snd_hdspe_suspend(struct pci_dev *dev, pm_message_t st
 	/* (5) Enter low-power state */
 	/* Place the hardware into a low-power mode, not sure if that is available for HDSPe? */
 
+	dev_dbg(&dev->dev, "Suspending HDSPe driver ended\n");
 	return 0;
 }
 
@@ -672,6 +685,7 @@ static int __maybe_unused snd_hdspe_resume(struct pci_dev *dev)
 		return -ENODEV;
 	}
 
+	dev_dbg(hdspe->card->dev, "Resuming HDSPe driver\n");
 
 	/* (2) Reinitialize the chip */
 	/* Perform any necessary reinitialization steps after resume */
@@ -699,6 +713,7 @@ static int __maybe_unused snd_hdspe_resume(struct pci_dev *dev)
 	/* (6) Return ALSA to full power state */
 	snd_power_change_state(card, SNDRV_CTL_POWER_D0);
 
+	dev_dbg(&dev->dev, "Resuming HDSPe driver ended\n");
 	return 0;
 }
 

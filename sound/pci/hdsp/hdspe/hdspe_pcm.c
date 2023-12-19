@@ -534,6 +534,7 @@ static int snd_hdspe_trigger(struct snd_pcm_substream *substream, int cmd)
 	int running;
 
 	spin_lock(&hdspe->lock);
+	dev_dbg(hdspe->card->dev, "Trigger received with %d\n", cmd);
 	running = hdspe->running;
 	switch (cmd) {
 	case SNDRV_PCM_TRIGGER_START:

@@ -206,22 +206,6 @@ void hdspe_update_frame_count(struct hdspe* hdspe)
 #endif /*DEBUG_FRAME_COUNT*/
 }
 
-static inline void hdspe_start_audio(struct hdspe * s)
-{
-	return;   /* we have audio interrupts enabled all the time */
-	if (s->tco) return;   /* always running with TCO */
-	s->reg.control.common.START = s->reg.control.common.IE_AUDIO = true;
-	hdspe_write_control(s);
-}
-
-static inline void hdspe_stop_audio(struct hdspe * s)
-{
-	return;   /* we leave audio interrupts enabled all the time */	
-	if (s->tco) return;   /* leave always running with TCO */
-	s->reg.control.common.START = s->reg.control.common.IE_AUDIO = false;
-	hdspe_write_control(s);
-}
-
 /* should I silence all or only opened ones ? doit all for first even is 4MB*/
 static void hdspe_silence_playback(struct hdspe *hdspe)
 {
@@ -583,10 +567,8 @@ static int snd_hdspe_trigger(struct snd_pcm_substream *substream, int cmd)
 	}
 _ok:
 	snd_pcm_trigger_done(substream, substream);
-	if (!hdspe->running && running)
-		hdspe_start_audio(hdspe);
-	else if (hdspe->running && !running)
-		hdspe_stop_audio(hdspe);
+	// Since we have audio interrupts enabled all the time, 
+	// no explicit start or stop is necessary
 	hdspe->running = running;
 	spin_unlock(&hdspe->lock);
 
@@ -844,15 +826,9 @@ static int snd_hdspe_open(struct snd_pcm_substream *substream)
 		snd_hdspe_capture_subinfo;
 
 	if (playback) {
-		if (!hdspe->capture_substream)
-			hdspe_stop_audio(hdspe);
-
 		hdspe->playback_pid = current->pid;
 		hdspe->playback_substream = substream;
 	} else {
-		if (!hdspe->playback_substream)
-			hdspe_stop_audio(hdspe);
-
 		hdspe->capture_pid = current->pid;
 		hdspe->capture_substream = substream;
 	}

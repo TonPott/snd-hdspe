@@ -544,14 +544,14 @@ static int snd_hdspe_trigger(struct snd_pcm_substream *substream, int cmd)
 		snd_pcm_group_for_each_entry(s, substream) {
 			if (s == other) {
 				snd_pcm_trigger_done(s, substream);
-				if (cmd == SNDRV_PCM_TRIGGER_START || SNDRV_PCM_TRIGGER_RESUME)
+				if (cmd == SNDRV_PCM_TRIGGER_START || cmd == SNDRV_PCM_TRIGGER_RESUME)
 					running |= 1 << s->stream;
 				else
 					running &= ~(1 << s->stream);
 				goto _ok;
 			}
 		}
-		if (cmd == SNDRV_PCM_TRIGGER_START || SNDRV_PCM_TRIGGER_RESUME) {
+		if (cmd == SNDRV_PCM_TRIGGER_START || cmd == SNDRV_PCM_TRIGGER_RESUME) {
 			if (!(running & (1 << SNDRV_PCM_STREAM_PLAYBACK))
 					&& substream->stream ==
 					SNDRV_PCM_STREAM_CAPTURE)
@@ -587,7 +587,9 @@ static const struct snd_pcm_hardware snd_hdspe_playback_subinfo = {
 	.info = (SNDRV_PCM_INFO_MMAP |
 		 SNDRV_PCM_INFO_MMAP_VALID |
 		 SNDRV_PCM_INFO_NONINTERLEAVED |
-		 SNDRV_PCM_INFO_SYNC_START | SNDRV_PCM_INFO_DOUBLE),
+		 SNDRV_PCM_INFO_SYNC_START |
+		 SNDRV_PCM_INFO_RESUME |
+		 SNDRV_PCM_INFO_DOUBLE),
 	.formats = SNDRV_PCM_FMTBIT_S32_LE,
 //	.formats = SNDRV_PCM_FMTBIT_FLOAT_LE,	
 	.rates = (SNDRV_PCM_RATE_32000 |
@@ -613,7 +615,8 @@ static const struct snd_pcm_hardware snd_hdspe_capture_subinfo = {
 	.info = (SNDRV_PCM_INFO_MMAP |
 		 SNDRV_PCM_INFO_MMAP_VALID |
 		 SNDRV_PCM_INFO_NONINTERLEAVED |
-		 SNDRV_PCM_INFO_SYNC_START),
+		 SNDRV_PCM_INFO_SYNC_START | 
+		 SNDRV_PCM_INFO_RESUME),
 	.formats = SNDRV_PCM_FMTBIT_S32_LE,
 //	.formats = SNDRV_PCM_FMTBIT_FLOAT_LE,
 	.rates = (SNDRV_PCM_RATE_32000 |

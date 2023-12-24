@@ -394,6 +394,35 @@ static enum hdspe_io_type hdspe_get_io_type(int pci_vendor_id, int firmware_rev)
 	return HDSPE_IO_TYPE_INVALID;
 }
 
+static void snd_hdspe_work_start(struct hdspe *hdspe)
+{
+	spin_lock_init(&hdspe->lock);
+	INIT_WORK(&hdspe->midi_work, hdspe_midi_work);
+	INIT_WORK(&hdspe->status_work, hdspe_status_work);
+}
+
+static int snd_hdspe_init_all(struct hdspe *hdspe)
+{
+	int err;
+
+	/* Mixer */
+	err = hdspe_init_mixer(hdspe);
+	if (err < 0)
+		return err;
+
+	/* TCO */
+	err = hdspe_init_tco(hdspe);
+	if (err < 0)
+		return err;
+
+	/* Methods, tables, registers */
+	err = hdspe_init(hdspe);
+	if (err < 0)
+		return err;
+
+	return 0;
+}
+
 static int snd_hdspe_create(struct hdspe *hdspe)
 {
 	struct snd_card *card = hdspe->card;
@@ -405,9 +434,7 @@ static int snd_hdspe_create(struct hdspe *hdspe)
 	hdspe->port = 0;
 	hdspe->iobase = NULL;
 
-	spin_lock_init(&hdspe->lock);
-	INIT_WORK(&hdspe->midi_work, hdspe_midi_work);
-	INIT_WORK(&hdspe->status_work, hdspe_status_work);
+	snd_hdspe_work_start(hdspe);
 
 	pci_read_config_word(hdspe->pci,
 			PCI_CLASS_REVISION, &hdspe->firmware_rev);
@@ -509,18 +536,8 @@ static int snd_hdspe_create(struct hdspe *hdspe)
 		dev_warn(card->dev, "Card ID not set: no serial number.\n");
 	}
 
-	/* Mixer */
-	err = hdspe_init_mixer(hdspe);
-	if (err < 0)
-		return err;
-
-	/* TCO */
-	err = hdspe_init_tco(hdspe);
-	if (err < 0)
-		return err;
-
-	/* Methods, tables, registers */
-	err = hdspe_init(hdspe);
+	/* Init all HDSPe things like TCO, methods, tables, registers ... */
+	err = snd_hdspe_init_all(hdspe);
 	if (err < 0)
 		return err;
 
@@ -548,16 +565,30 @@ static int snd_hdspe_create(struct hdspe *hdspe)
 	return 0;
 }
 
-static int snd_hdspe_free(struct hdspe * hdspe)
+static void snd_hdspe_work_stop(struct hdspe *hdspe)
 {
-	if (hdspe->port) {
+	if (hdspe->port) 
+	{
 		hdspe_stop_interrupts(hdspe);
 		cancel_work_sync(&hdspe->midi_work);
 		cancel_work_sync(&hdspe->status_work);
+	}
+}
+
+static void snd_hdspe_deinit_all(struct hdspe *hdspe)
+{
+	if (hdspe->port) 
+	{
 		hdspe_terminate(hdspe);
 		hdspe_terminate_tco(hdspe);
 		hdspe_terminate_mixer(hdspe);
 	}
+}
+
+static int snd_hdspe_free(struct hdspe * hdspe)
+{
+	snd_hdspe_work_stop(hdspe);
+	snd_hdspe_deinit_all(hdspe);
 
 	if (hdspe->irq >= 0)
 		free_irq(hdspe->irq, (void *) hdspe);
@@ -661,9 +692,7 @@ static int __maybe_unused snd_hdspe_suspend(struct pci_dev *dev, pm_message_t st
 
 	/* (4) Stop hardware operations */
 	/* Stop interrupts and halt any ongoing operations */
-	hdspe_stop_interrupts(hdspe);
-	cancel_work_sync(&hdspe->midi_work);
-	cancel_work_sync(&hdspe->status_work);
+	snd_hdspe_work_stop(hdspe);
 
 	/* (5) Enter low-power state */
 	/* Place the hardware into a low-power mode, not sure if that is available for HDSPe? */
@@ -690,6 +719,8 @@ static int __maybe_unused snd_hdspe_resume(struct pci_dev *dev)
 	/* (2) Reinitialize the chip */
 	/* Perform any necessary reinitialization steps after resume */
 	/* Unclear what HDSPe needs to have reinitialized? */
+	/* Init all HDSPe things like TCO, methods, tables, registers ... */
+	snd_hdspe_work_start(hdspe);
 
 	/* (3) Restore saved register values */
 	/* Restore the register values saved during suspend */
@@ -705,9 +736,9 @@ static int __maybe_unused snd_hdspe_resume(struct pci_dev *dev)
 
 	/* (5) Restart the chip or hardware */
 	/* Restart any halted hardware or operations */
-	spin_lock_init(&hdspe->lock);
-	INIT_WORK(&hdspe->midi_work, hdspe_midi_work);
-	INIT_WORK(&hdspe->status_work, hdspe_status_work);
+	// Technically, this redundantly sets START and IE_AUDIO in 
+	// reg.control.common to true, which already happened via 
+	// hdspe->savedRegisters
 	hdspe_start_interrupts(hdspe);
 
 	/* (6) Return ALSA to full power state */

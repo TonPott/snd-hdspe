@@ -747,6 +747,7 @@ static int __maybe_unused snd_hdspe_resume(struct pci_dev *dev)
 
 	/* (4) Update hardware with restored register values */
 	/* Write restored register values to the hardware */
+	hdspe_write_settings(hdspe);
 	hdspe_write_control(hdspe);
 
 	/* Resume mixer? hdspe_init_mixer just allocates memory ... */

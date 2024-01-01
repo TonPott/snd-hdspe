@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /**
- * hdspe_midi.c
+ * DOC: hdspe_midi.c
  * @brief RME HDSPe MIDI driver.
  *
  * 20210728 - Philippe.Bekaert@uhasselt.be

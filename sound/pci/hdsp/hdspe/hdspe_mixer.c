@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /**
- * hdspe-mixer.c
+ * DOC: hdspe-mixer.c
  * @brief RME HDSPe hardware mixer status and control interface.
  *
  * 20210728,1206,07 - Philippe.Bekaert@uhasselt.be

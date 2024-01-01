@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /**
- * hdspe_madi.c
+ * DOC: hdspe_madi.c
  * @brief RME HDSPe MADI driver methods.
  *
  * 20210728,1207 - Philippe.Bekaert@uhasselt.be

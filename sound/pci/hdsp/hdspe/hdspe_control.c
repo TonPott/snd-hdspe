@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /**
- * hdspe-control.c
+ * DOC: hdspe-control.c
  * @brief RME HDSPe sound card driver status and control interface.
  *
  * 20210727,28,29,30,0908,09,10,20220330 - Philippe.Bekaert@uhasselt.be
@@ -16,7 +16,7 @@
 #include "hdspe_core.h"
 #include "hdspe_control.h"
 
-/**
+/*
  * hdspe_init_autosync_tables: calculates tables needed for the 
  * preferred sync and autosync ref properties below, given the list of 
  * autosync clock sources for a card:
@@ -31,6 +31,7 @@
  * is stored in hdspe::t.autosync_count. 
  * @nr_autosync_opts: the number of clock sources (size of autosync_opts array) 
  * @autosync_opts: the autosync clock sources offered by the card. */
+
 void hdspe_init_autosync_tables(struct hdspe* hdspe,
 				int nr_autosync_opts,
 				enum hdspe_clock_source* autosync_opts)

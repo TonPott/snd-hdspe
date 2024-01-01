@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-/*
- *   ALSA driver for RME HDSPe MADI/AES/RayDAT/AIO/AIO Pro audio interface(s)
+/**
+ * DOC: ALSA driver for RME HDSPe MADI/AES/RayDAT/AIO/AIO Pro audio interface(s)
  *
  *      Copyright (c) 2003 Winfried Ritsch (IEM)
  *      code based on hdsp.c   Paul Davis

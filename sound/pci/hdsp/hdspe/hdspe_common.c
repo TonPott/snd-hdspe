@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /**
- * hdspe_common.c
+ * DOC: hdspe_common.c
  * @brief RME HDSPe cards common driver methods.
  *
  * 20210727,28,29 - Philippe.Bekaert@uhasselt.be

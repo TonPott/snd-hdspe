@@ -415,6 +415,8 @@ int hdspe_set_sample_rate(struct hdspe * hdspe, u32 desired_rate)
 	   Note that a similar but essentially insoluble problem exists for
 	   externally-driven rate changes. All we can do is to flag rate
 	   changes in the read/write routines.
+
+	   Yes tidy up needed here..
 	 */
 	int changed;
 	enum hdspe_speed desired_speed_mode =

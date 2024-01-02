@@ -58,6 +58,7 @@ void hdspe_proc_read_common(struct snd_info_buffer *buffer,
 			    struct hdspe_status* s)
 {
 	int i;
+
 	hdspe->m.read_status(hdspe, s);
 
 	snd_iprintf(buffer, "RME HDSPe %s serial %08d firmware %d\n\n",
@@ -69,6 +70,7 @@ void hdspe_proc_read_common(struct snd_info_buffer *buffer,
 	snd_iprintf(buffer, "System sample rate\t: %lu\n",
 		    (long unsigned)div_u64(s->sample_rate_numerator,
 					   (u64)s->sample_rate_denominator));
+
 	snd_iprintf(buffer, "Internal sample rate\t: %lu\n",
 		    (long unsigned)div_u64(s->sample_rate_numerator,
 				   (u64)s->internal_sample_rate_denominator));
@@ -107,7 +109,7 @@ void hdspe_proc_read_common2(struct snd_info_buffer *buffer,
 			     struct hdspe_status* s)
 {
 	int i;
-	
+
 	union hdspe_status0_reg status0 = hdspe_read_status0(hdspe);
 	snd_iprintf(buffer, "\n");
 	snd_iprintf(buffer, "BUF_PTR\t: %05d\nBUF_ID\t: %d\nID_PTR\t: %05d\n",

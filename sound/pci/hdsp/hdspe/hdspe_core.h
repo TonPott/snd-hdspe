@@ -875,8 +875,6 @@ struct hdspe_tables {
 
 	const char * const *clock_source_names;
 
-	// The ACPI/PCI power state supported by the model (SNDRV_CTL_POWER_D3hot ...)
-	int supported_power_state;
 };
 
 /* status element ids for status change notification */
@@ -916,27 +914,27 @@ struct hdspe_ctl_ids {
 };
 
 struct hdspe {
-	struct pci_dev *pci;	     /* pci info */
-	int vendor_id;               /* PCI vendor ID: Xilinx or RME */
-	int dev;		     /* hardware vars... */
+	struct pci_dev *pci;		/* pci info */
+	int vendor_id;			/* PCI vendor ID: Xilinx or RME */
+	int dev;			/* hardware vars... */
 	int irq;
 	unsigned long port;
 	void __iomem *iobase;
 
-	u16 firmware_rev;            /* determines io_type (card model) */
+	u16 firmware_rev;		/* determines io_type (card model) */
 	u16 reserved;
-	u32 fw_build;                /* firmware build */
-	u32 serial;                  /* serial nr */
+	u32 fw_build;			/* firmware build */
+	u32 serial;			/* serial nr */
 
-	enum hdspe_io_type io_type;  /* MADI, AES, RAYDAT, AIO or AIO_PRO */
-	char *card_name;	     /* for procinfo */
-	struct hdspe_methods m;      /* methods for the card model */
-	struct hdspe_tables t;       /* tables for the card model */
+	enum hdspe_io_type io_type;	/* MADI, AES, RAYDAT, AIO or AIO_PRO */
+	char *card_name;		/* for procinfo */
+	struct hdspe_methods m;		/* methods for the card model */
+	struct hdspe_tables t;		/* tables for the card model */
 
 	/* ALSA devices */
-	struct snd_card *card;	     /* one card */
-	struct snd_pcm *pcm;	     /* has one pcm */
-	struct snd_hwdep *hwdep;     /* and a hwdep for additional ioctl */
+	struct snd_card *card;		/* one card */
+	struct snd_pcm *pcm;		/* has one pcm */
+	struct snd_hwdep *hwdep;	/* and a hwdep for additional ioctl */
   
 	/* Only one playback and/or capture stream */
         struct snd_pcm_substream *capture_substream;
@@ -1012,6 +1010,7 @@ struct hdspe {
 	} reg;
 
 	// TODO: make it clearer that we actually just save&restore the control and settings registers?
+	// Maybe pll_freq is needed? What about status?
 	struct reg savedRegisters;
 
 	u64 frame_count;            /* current period frame counter */

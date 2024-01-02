@@ -457,6 +457,13 @@ static int snd_hdspe_create(struct hdspe *hdspe)
 		return -ENODEV;
 	}
 
+	/* Determine supported power states */
+
+	dev_dbg(card->dev, "Low power state D1 is supported: %u\n", pci->d1_support);
+	dev_dbg(card->dev, "Low power state D2 is supported: %u\n", pci->d2_support);
+	dev_dbg(card->dev, "D1 and D2 are forbidden:         %u\n", pci->no_d1d2);
+
+
 	/* PCI */
 	err = pci_enable_device(pci);
 	if (err < 0)
@@ -679,30 +686,23 @@ static int __maybe_unused snd_hdspe_suspend(struct pci_dev *dev, pm_message_t st
 		return -ENODEV;
 	}
 
-	dev_dbg(hdspe->card->dev, "Suspending HDSPe driver to state %x\n", hdspe->t.supported_power_state);
+	dev_dbg(hdspe->card->dev, "Dry run of suspending HDSPe driver without PM\n");
 
 	/* (2) Change ALSA power state */
-	snd_power_change_state(card, hdspe->t.supported_power_state);
-	// Alternatively, do something like this??
-	/*
-	u16 pm_cap;
-	pci_read_config_word(pdev, PCI_PM_CTRL, &pm_cap);
 
-	// Check if the device supports D1 state
-	if (pm_cap & PCI_PM_CAP_D1) 
-	{
+	/* TODO: snd_power_change_state() only apparently exists for historical reasons?
+	 * Maybe PCI PM commands instead?
+	 * PCIe compliance means minimal supported should be D0 and D3hot therefore don't need support list?
+	 * Call doesn't work on AES hardware even to D0
+	 */
 
-	}
-
-	// Check if the device supports D2 state
-	if (pm_cap & PCI_PM_CAP_D2) 
-	{
-
-	}
-	*/
+	//snd_power_change_state(card, SNDRV_CTL_POWER_D3hot);
 
 	/* (3) Save register values */
 	/* Save the necessary register values in hdspe struct */
+
+	dev_dbg(hdspe->card->dev, "System sample rate before suspend: %u\n", hdspe_read_system_sample_rate(hdspe));
+
 	spin_lock_irq(&hdspe->lock);
 	hdspe->savedRegisters = hdspe->reg;
 	spin_unlock_irq(&hdspe->lock);
@@ -713,13 +713,16 @@ static int __maybe_unused snd_hdspe_suspend(struct pci_dev *dev, pm_message_t st
 
 	/* (5) Enter low-power state */
 	/* Place the hardware into a low-power mode, not sure if that is available for HDSPe? */
+	/* Not according to debug output but unsure */
 
-	dev_dbg(&dev->dev, "Suspending HDSPe driver ended\n");
+	dev_dbg(&dev->dev, "Dry run of suspending HDSPe driver without PM ended\n");
+
 	return 0;
 }
 
 static int __maybe_unused snd_hdspe_resume(struct pci_dev *dev)
 {
+
 	/* (1) Accessing HDSPe data */
 	struct snd_card *card = pci_get_drvdata(dev);
 	if (!card) {
@@ -731,12 +734,13 @@ static int __maybe_unused snd_hdspe_resume(struct pci_dev *dev)
 		return -ENODEV;
 	}
 
-	dev_dbg(hdspe->card->dev, "Resuming HDSPe driver\n");
+	dev_dbg(hdspe->card->dev, "Dry run of resuming HDSPe driver without PM\n");
 
 	/* (2) Reinitialize the chip */
 	/* Perform any necessary reinitialization steps after resume */
 	/* Unclear what HDSPe needs to have reinitialized? */
 	/* Init all HDSPe things like TCO, methods, tables, registers ... */
+
 	snd_hdspe_work_start(hdspe);
 
 	/* (3) Restore saved register values */
@@ -749,6 +753,9 @@ static int __maybe_unused snd_hdspe_resume(struct pci_dev *dev)
 	/* Write restored register values to the hardware */
 	hdspe_write_settings(hdspe);
 	hdspe_write_control(hdspe);
+	hdspe_write_pll_freq(hdspe);	/* required to keep sample rate */
+
+	dev_dbg(hdspe->card->dev, "System sample rate after resume: %u\n", hdspe_read_system_sample_rate(hdspe));
 
 	/* Resume mixer? hdspe_init_mixer just allocates memory ... */
 
@@ -760,9 +767,14 @@ static int __maybe_unused snd_hdspe_resume(struct pci_dev *dev)
 	hdspe_start_interrupts(hdspe);
 
 	/* (6) Return ALSA to full power state */
-	snd_power_change_state(card, SNDRV_CTL_POWER_D0);
 
-	dev_dbg(&dev->dev, "Resuming HDSPe driver ended\n");
+	/* This call to D0 resumes most of system on AES hardware and allows brief attempt to swap TTY but then
+	 * needs hard reset
+	 */
+
+	//snd_power_change_state(card, SNDRV_CTL_POWER_D0);
+
+	dev_dbg(&dev->dev, "Dry run of resuming HDSPe driver ended\n");
 	return 0;
 }
 

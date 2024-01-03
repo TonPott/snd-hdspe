@@ -33,7 +33,8 @@
  * Structs returned by the HDSPe driver ioctls contain the API version with which the
  * kernel driver has been compiled. API users should check that version against
  * HDSPE_VERSION and take appropriate action in case versions differ. */
-#define HDSPE_VERSION            3
+
+#define HDSPE_VERSION            3	/* TODO ? */
 
 /* Maximum hardware input, software playback and hardware output
  * channels is 64 even on 56Mode you have 64playbacks to matrix. */
@@ -110,15 +111,15 @@ enum hdspe_freq {
 
 #define HDSPE_FREQ_NAME(i)			   \
 	(i == HDSPE_FREQ_NO_LOCK   ? ""          : \
-	 i == HDSPE_FREQ_32KHZ     ? "32 KHz"    : \
-	 i == HDSPE_FREQ_44_1KHZ   ? "44.1 KHz"  : \
-	 i == HDSPE_FREQ_48KHZ     ? "48 KHz"    : \
-	 i == HDSPE_FREQ_64KHZ     ? "64 KHz"    : \
-	 i == HDSPE_FREQ_88_2KHZ   ? "88.2 KHz"  : \
-	 i == HDSPE_FREQ_96KHZ     ? "96 KHz"    : \
-	 i == HDSPE_FREQ_128KHZ    ? "128 KHz"   : \
-	 i == HDSPE_FREQ_176_4KHZ  ? "176.4 KHz" : \
-	 i == HDSPE_FREQ_192KHZ    ? "192 KHz"   : \
+	 i == HDSPE_FREQ_32KHZ     ? "32 kHz"    : \
+	 i == HDSPE_FREQ_44_1KHZ   ? "44.1 kHz"  : \
+	 i == HDSPE_FREQ_48KHZ     ? "48 kHz"    : \
+	 i == HDSPE_FREQ_64KHZ     ? "64 kHz"    : \
+	 i == HDSPE_FREQ_88_2KHZ   ? "88.2 kHz"  : \
+	 i == HDSPE_FREQ_96KHZ     ? "96 kHz"    : \
+	 i == HDSPE_FREQ_128KHZ    ? "128 kHz"   : \
+	 i == HDSPE_FREQ_176_4KHZ  ? "176.4 kHz" : \
+	 i == HDSPE_FREQ_192KHZ    ? "192 kHz"   : \
 	 "???")
 
 #define HDSPE_FREQ_SAMPLE_RATE(i) \
@@ -548,8 +549,8 @@ enum hdspe_tco_sample_rate {
 };
 
 #define HDSPE_TCO_SAMPLE_RATE_NAME(i)				\
-	(i == HDSPE_TCO_SAMPLE_RATE_44_1     ? "44.1 KHz" :	\
-	 i == HDSPE_TCO_SAMPLE_RATE_48       ? "48 KHz" :	\
+	(i == HDSPE_TCO_SAMPLE_RATE_44_1     ? "44.1 kHz" :	\
+	 i == HDSPE_TCO_SAMPLE_RATE_48       ? "48 kHz" :	\
 	 i == HDSPE_TCO_SAMPLE_RATE_FROM_APP ? "From App" :	\
 	 "???")
 
@@ -563,8 +564,8 @@ enum hdspe_wck_conversion {
 
 #define HDSPE_WCK_CONVERSION_NAME(i)					\
 	(i == HDSPE_WCK_CONVERSION_1_1     ? "1:1" :			\
-	 i == HDSPE_WCK_CONVERSION_44_1_48 ? "44.1 KHz -> 48 KHz" :	\
-	 i == HDSPE_WCK_CONVERSION_48_44_1 ? "48 KHz -> 44.1 KHz" :	\
+	 i == HDSPE_WCK_CONVERSION_44_1_48 ? "44.1 kHz -> 48 kHz" :	\
+	 i == HDSPE_WCK_CONVERSION_48_44_1 ? "48 kHz -> 44.1 kHz" :	\
 	 "???")
 
 #ifdef NEVER

@@ -122,20 +122,20 @@ state.HDSPe24052016 {
 	control.12 {
 		iface CARD
 		name 'Internal Frequency'
-		value '44.1 KHz'
+		value '44.1 kHz'
 		comment {
 			access 'read write'
 			type ENUMERATED
 			count 1
-			item.0 '32 KHz'
-			item.1 '44.1 KHz'
-			item.2 '48 KHz'
-			item.3 '64 KHz'
-			item.4 '88.2 KHz'
-			item.5 '96 KHz'
-			item.6 '128 KHz'
-			item.7 '176.4 KHz'
-			item.8 '192 KHz'
+			item.0 '32 kHz'
+			item.1 '44.1 kHz'
+			item.2 '48 kHz'
+			item.3 '64 kHz'
+			item.4 '88.2 kHz'
+			item.5 '96 kHz'
+			item.6 '128 kHz'
+			item.7 '176.4 kHz'
+			item.8 '192 kHz'
 		}
 	}
 	control.13 {
@@ -158,21 +158,21 @@ state.HDSPe24052016 {
 	control.14 {
 		iface CARD
 		name 'External Frequency'
-		value '44.1 KHz'
+		value '44.1 kHz'
 		comment {
 			access 'read volatile'
 			type ENUMERATED
 			count 1
 			item.0 ''
-			item.1 '32 KHz'
-			item.2 '44.1 KHz'
-			item.3 '48 KHz'
-			item.4 '64 KHz'
-			item.5 '88.2 KHz'
-			item.6 '96 KHz'
-			item.7 '128 KHz'
-			item.8 '176.4 KHz'
-			item.9 '192 KHz'
+			item.1 '32 kHz'
+			item.2 '44.1 kHz'
+			item.3 '48 kHz'
+			item.4 '64 kHz'
+			item.5 '88.2 kHz'
+			item.6 '96 kHz'
+			item.7 '128 kHz'
+			item.8 '176.4 kHz'
+			item.9 '192 kHz'
 		}
 	}
 	control.15 {
@@ -227,24 +227,24 @@ state.HDSPe24052016 {
 		name 'AutoSync Frequency'
 		value.0 ''
 		value.1 ''
-		value.2 '48 KHz'
+		value.2 '48 kHz'
 		value.3 ''
-		value.4 '44.1 KHz'
+		value.4 '44.1 kHz'
 		value.5 ''
 		comment {
 			access 'read volatile'
 			type ENUMERATED
 			count 6
 			item.0 ''
-			item.1 '32 KHz'
-			item.2 '44.1 KHz'
-			item.3 '48 KHz'
-			item.4 '64 KHz'
-			item.5 '88.2 KHz'
-			item.6 '96 KHz'
-			item.7 '128 KHz'
-			item.8 '176.4 KHz'
-			item.9 '192 KHz'
+			item.1 '32 kHz'
+			item.2 '44.1 kHz'
+			item.3 '48 kHz'
+			item.4 '64 kHz'
+			item.5 '88.2 kHz'
+			item.6 '96 kHz'
+			item.7 '128 kHz'
+			item.8 '176.4 kHz'
+			item.9 '192 kHz'
 		}
 	}
 	control.19 {
@@ -680,8 +680,8 @@ state.HDSPe24052016 {
 			access 'read write'
 			type ENUMERATED
 			count 1
-			item.0 '44.1 KHz'
-			item.1 '48 KHz'
+			item.0 '44.1 kHz'
+			item.1 '48 kHz'
 			item.2 'from App'
 		}
 	}
@@ -709,8 +709,8 @@ state.HDSPe24052016 {
 			type ENUMERATED
 			count 1
 			item.0 '1:1'
-			item.1 '44.1 KHz -> 48 KHz'
-			item.2 '48 KHz -> 44.1 KHz'
+			item.1 '44.1 kHz -> 48 kHz'
+			item.2 '48 kHz -> 44.1 kHz'
 		}
 	}
 	control.58 {

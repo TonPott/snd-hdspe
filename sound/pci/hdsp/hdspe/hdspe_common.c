@@ -274,7 +274,7 @@ static u32 hdspe_dds_sample_rate(struct hdspe* hdspe, u32 dds)
 void hdspe_dds_range(struct hdspe* hdspe, u32* min, u32* max)
 {
 	u64 fconst = freq_const[hdspe->io_type];
-	*min = (u32)div_u64(fconst, 51750); /* 207KHz / 4 */
+	*min = (u32)div_u64(fconst, 51750); /* 207kHz / 4 */
 	*max = (u32)div_u64(fconst, 27000);
 }
 

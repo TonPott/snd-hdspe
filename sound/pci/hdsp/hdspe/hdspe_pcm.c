@@ -173,7 +173,7 @@ snd_pcm_uframes_t hdspe_hw_pointer(struct hdspe *hdspe)
  * determine the frame counter even in the presence of xruns or late
  * interrupt handling, as long as the hardware pointer did not wrap more 
  * than once since the previous invocation. The hardware pointer wraps every 
- * 16K frames, so about 3 times a second at 48 KHz sampling rate. */
+ * 16K frames, so about 3 times a second at 48 kHz sampling rate. */
 void hdspe_update_frame_count(struct hdspe* hdspe)
 {
 	u32 hw_pointer;

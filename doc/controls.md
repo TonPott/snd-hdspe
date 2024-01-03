@@ -45,8 +45,8 @@ Controls common to all supported cards
 | CARD | Preferred AutoSync Reference | RW | Enum | Preferred clock source, if in AutoSync mode.            | 
 | CARD | Current AutoSync Reference | RV | Enum | Current clock source. | 
 | CARD | AutoSync Status | RV | Enum | AutoSync clock status: N/A, No Lock, Lock or Sync, for all sources.            | 
-| CARD | AutoSync Frequency | RV | Enum | Current clock source sample rate class, for all sources: 32 KHz, 44.1 KHz, 48 KHz, 64 KHz, 88.2 KHz, 96 KHz, 128 KHz 176.4 KHz 192 KHz. Note: MADI cards only report this for the MADI input and not for the other sources. | 
-| CARD | Internal Frequency | RW | Enum | Internal sampling rate class: 32 KHz, 44.1 KHz, 48 KHz etc....           | 
+| CARD | AutoSync Frequency | RV | Enum | Current clock source sample rate class, for all sources: 32 kHz, 44.1 kHz, 48 kHz, 64 kHz, 88.2 kHz, 96 kHz, 128 kHz 176.4 kHz 192 kHz. Note: MADI cards only report this for the MADI input and not for the other sources. | 
+| CARD | Internal Frequency | RW | Enum | Internal sampling rate class: 32 kHz, 44.1 kHz, 48 kHz etc....           | 
 
 **Status Polling**
 
@@ -91,13 +91,13 @@ TCO controls
 | CARD | LTC Time | RV | Int64 | Current periods end LTC time - see below **LTC control** | 
 | CARD | LTC Run | RW | Bool | Pauze / restart LTC output | 
 | CARD | LTC Frame Rate | RW | Enum | TCO LTC engine frame rate: 24, 25, 29.97, 29.97 DF or 30 fps | 
-| CARD | LTC Sample Rate | RW | Enum | TCO LTC engine audio sample rate: 44.1 KHz, 48 KHz, **From App** | 
+| CARD | LTC Sample Rate | RW | Enum | TCO LTC engine audio sample rate: 44.1 kHz, 48 kHz, **From App** | 
 | CARD | TCO Lock | RV | Bool | Whether or not the TCO is locked to LTC, Video or Word Clock | 
 | CARD | TCO Pull | RW | Enum | Pull Up / Pull Down factor |
 | CARD | TCO Sync Source | RW | Enum | TCO preferred synchronisation source: LTC, Video or Word Clock | 
 | CARD | TCO Video Format | RV | Enum | Video format reference signal detected: PAL or NTSC blackburst. Firmware 11 or higher detect SDI reference signals of potential other frame rates, use TCO Video Frame Rate control if TCO firmware >- 11|
 | CARD | TCO Video Frame Rate | RV | Enum | Video frame rate detected (meaningful only if TCO firmware >= 11) |
-| CARD | TCO WordClk Conversion | RW | Enum | Word clock rate conversion 1:1, 44.1 -> 48 KHz, 48 -> 44.1 KHz | 
+| CARD | TCO WordClk Conversion | RW | Enum | Word clock rate conversion 1:1, 44.1 -> 48 kHz, 48 -> 44.1 kHz | 
 | CARD | TCO WordClk Term | RW | Bool | Whether or not to 75 Ohm terminate the word clock/video input BNC | 
 | CARD | TCO WordClk Valid | RV | Bool | Whether or not a valid word clock signal is detected | 
 | CARD | TCO WordClk Speed | RV | Enum | Detected input word clock speed |
@@ -173,13 +173,13 @@ actual LTC frame duration in the driver.
 
 Example: 29.97 NTSC pull down LTC will be reported with a pull factor of 999. 
 
-The 'LTC Frame Rate' property controls the TCO LTC engine frame rate. Usually, 'LTC Frame Rate' and 'TCO Pull' shall be set to match the incoming LTC effective frame rate, in order to produce a clean 44.1 KHz or 48 KHz sample clock synchronisation. But it also sets the frame rate for LTC output.
+The 'LTC Frame Rate' property controls the TCO LTC engine frame rate. Usually, 'LTC Frame Rate' and 'TCO Pull' shall be set to match the incoming LTC effective frame rate, in order to produce a clean 44.1 kHz or 48 kHz sample clock synchronisation. But it also sets the frame rate for LTC output.
 
 **From App**
 
 The 'From App' LTC sample rate setting will set the TCO LTC engine sample rate
-to match the audio card sample rate class: 44.1 KHz if the sound card is
-running at 44.1 KHz, and 48 KHz otherwise (the TCO does not support 32 KHz
+to match the audio card sample rate class: 44.1 kHz if the sound card is
+running at 44.1 kHz, and 48 kHz otherwise (the TCO does not support 32 kHz
 sample rate).
 
 
@@ -247,7 +247,7 @@ MADI controls
 
 | Interface | Name | Access | Value Type | Description |
 | :- | :- | :- | :- | :- |
-| CARD | External Frequency | RV | Enum | Frequency class of the current autosync reference: 32KHz, 44.1KHz, 48KHz, etc... (MADI cards do not report the frequency class of each autosync reference individually, like other cards do.) |
+| CARD | External Frequency | RV | Enum | Frequency class of the current autosync reference: 32kHz, 44.1kHz, 48kHz, etc... (MADI cards do not report the frequency class of each autosync reference individually, like other cards do.) |
 | CARD | Preferred Input | RW | Enum | Preferred MADI input: Optical, Coaxial |
 | CARD | Autoselect Input | RW | Bool | Whether or not to automatically switch over input if preferred input is not available (a.k.a. safe mode) |
 | CARD | Current Input | RV | Enum | Current MADI input: Optical, Coaxial |

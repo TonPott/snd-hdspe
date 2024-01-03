@@ -187,7 +187,7 @@ struct hdspe_control_reg_common { __le32
 	LAT     : 3,   // buffer size is 2^n where n is defined by LAT
 	_04     : 1,
 	IE_AUDIO: 1,   // what do you think?
-	freq    : 2,   // internal clock: 1=32KHz, 2=44.1KKhz, 3=48KHz
+	freq    : 2,   // internal clock: 1=32kHz, 2=44.1kHz, 3=48kHz
 	
 	ds      : 1,   // double speed mode	
 	_09     : 1,
@@ -391,7 +391,7 @@ union hdspe_settings_reg {
  *
  * The frequency class of the internal clock is in the WR_CONTROL register
  * (see above). When reduced to single speed mode, it shall always correspond 
- * to the PLL frequency rounded to the nearest of 32KHz, 44.1KHz, 48KHz.
+ * to the PLL frequency rounded to the nearest of 32kHz, 44.1kHz, 48kHz.
  * If in Master clock mode, the internal clock frequency is fine tuned through 
  * the PLL frequency control register (WR_PLL_FREQ), see 
  * hdspe_write_system_sample_rate().
@@ -409,9 +409,9 @@ union hdspe_settings_reg {
  *
  * The frequency class values reported in the status registers are always
  * 4-bit values, with the following interpretation:
- *   1=32KHz, 2=44.1KHz, 3=48KHz, 
- *   4=64KHz, 5=88.2KHz, 6=96KHz,
- *   7=128KHz, 8=176.4KHz, 9=192KHz
+ *   1=32kHz, 2=44.1kHz, 3=48kHz,
+ *   4=64kHz, 5=88.2kHz, 6=96kHz,
+ *   7=128kHz, 8=176.4kHz, 9=192kHz
  *   other values indicate no lock.
  *
  * All cards report whether there is a valid external clock reference or not, 
@@ -723,7 +723,7 @@ union hdspe_status1_reg {
  * 0f000000  AES7
  * f0000000  AES8
  *
- * Frequency values: 1=32KHz, 2=44.1KHz, ... 9=192KHz, other=NoLock */
+ * Frequency values: 1=32kHz, 2=44.1kHz, ... 9=192kHz, other=NoLock */
 
 /* end of register definitions */
 #pragma scalar_storage_order default
@@ -1331,7 +1331,7 @@ extern u32 hdspe_internal_pitch(struct hdspe* hdspe);
 extern u32 hdspe_read_system_pitch(struct hdspe* hdspe);
 
 /* Read effective system sample rate from hardware. This may differ 
- * from 32KHz, 44.1KHz, etc... because of DDS (non-neutral system pitch). */
+ * from 32kHz, 44.1kHz, etc... because of DDS (non-neutral system pitch). */
 extern u32 hdspe_read_system_sample_rate(struct hdspe* hdspe);
 
 /* Read current system sample rate from hardware - read_status() helper. */

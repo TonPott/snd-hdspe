@@ -116,7 +116,7 @@
  * 24  1000000                     0.1 / 4              0=0.1%, 1=4%
  * 25  2000000                     pull-down            0=off, 1=on
  * 26  4000000                     pull-up              0=off, 1=on
- * 27  8000000  video in fps (1)   sample rate          0=44.1KHz, 1=48KHz
+ * 27  8000000  video in fps (1)   sample rate          0=44.1kHz, 1=48kHz
  * 28 10000000  "                  75 Ohm termination   0=off, 1=on
  * 29 20000000  "                  source select        0=WCK, 1=video, 2=LTC
  * 30 40000000  "                  "
@@ -398,7 +398,7 @@ static void hdspe_tco_write_settings(struct hdspe* hdspe)
 	};
 	
 	u32* reg;
-	bool sys_48KHz = (hdspe->reg.control.common.freq == 3);
+	bool sys_48kHz = (hdspe->reg.control.common.freq == 3);
 	
 	struct hdspe_tco* c = hdspe->tco;
 	if (!c) {
@@ -422,7 +422,7 @@ static void hdspe_tco_write_settings(struct hdspe* hdspe)
 	reg[2] |= FIELD_PREP(HDSPE_TCO2_set_freq,
 			      c->sample_rate == HDSPE_TCO_SAMPLE_RATE_48 ||
 			     (c->sample_rate == HDSPE_TCO_SAMPLE_RATE_FROM_APP
-			      && sys_48KHz));
+			      && sys_48kHz));
 
 	reg[2] |= FIELD_PREP(HDSPE_TCO2_set_freq_from_app,
 			     c->sample_rate == HDSPE_TCO_SAMPLE_RATE_FROM_APP);
@@ -445,22 +445,22 @@ void hdspe_tco_set_app_sample_rate(struct hdspe* hdspe)
 	 * of the sound card is changed to something not corresponding
 	 * with TCO card frequency, and TCO sample rate is "From App". */
 	struct hdspe_tco* c = hdspe->tco;
-	bool tco_48KHz, sys_48KHz;
+	bool tco_48kHz, sys_48kHz;
 	if (!c)
 		return;
 
 	if (c->sample_rate != HDSPE_TCO_SAMPLE_RATE_FROM_APP)
 		return;
 	
-	tco_48KHz = FIELD_GET(HDSPE_TCO2_set_freq, c->reg[2]);
-	sys_48KHz = (hdspe->reg.control.common.freq == 3);
+	tco_48kHz = FIELD_GET(HDSPE_TCO2_set_freq, c->reg[2]);
+	sys_48kHz = (hdspe->reg.control.common.freq == 3);
 	
-	if (tco_48KHz != sys_48KHz) {
+	if (tco_48kHz != sys_48kHz) {
 		c->reg[2] &= ~HDSPE_TCO2_set_freq;
-		c->reg[2] |= FIELD_PREP(HDSPE_TCO2_set_freq, sys_48KHz);
+		c->reg[2] |= FIELD_PREP(HDSPE_TCO2_set_freq, sys_48kHz);
 		hdspe_write_tco(hdspe, 2, c->reg[2]);
-		dev_dbg(hdspe->card->dev, "%s: 48KHz %s.\n",
-			__func__, sys_48KHz ? "ON" : "OFF");
+		dev_dbg(hdspe->card->dev, "%s: 48kHz %s.\n",
+			__func__, sys_48kHz ? "ON" : "OFF");
 	}
 }
 
@@ -469,8 +469,8 @@ void hdspe_tco_set_app_sample_rate(struct hdspe* hdspe)
 static u32 hdspe_tco_get_sample_rate(struct hdspe* hdspe)
 {
 	struct hdspe_tco* c = hdspe->tco;
-	bool tco_48KHz = FIELD_GET(HDSPE_TCO2_set_freq, c->reg[2]);
-	return tco_48KHz ? 48000 : 44100;
+	bool tco_48kHz = FIELD_GET(HDSPE_TCO2_set_freq, c->reg[2]);
+	return tco_48kHz ? 48000 : 44100;
 }
 
 static void hdspe_tco_set_timecode(struct hdspe* hdspe,

@@ -686,7 +686,7 @@ static int __maybe_unused snd_hdspe_suspend(struct pci_dev *dev, pm_message_t st
 		return -ENODEV;
 	}
 
-	dev_dbg(hdspe->card->dev, "Dry run of suspending HDSPe driver without PM\n");
+	dev_dbg(hdspe->card->dev, "Suspending HDSPe driver\n");
 
 	/* (2) Change ALSA power state */
 
@@ -696,7 +696,15 @@ static int __maybe_unused snd_hdspe_suspend(struct pci_dev *dev, pm_message_t st
 	 * Call doesn't work on AES hardware even to D0
 	 */
 
-	//snd_power_change_state(card, SNDRV_CTL_POWER_D3hot);
+	switch (hdspe->io_type) {
+		case HDSPE_MADI		: snd_power_change_state(card, SNDRV_CTL_POWER_D3hot); break;
+		case HDSPE_MADIFACE	: break;
+		case HDSPE_AES		: break;
+		case HDSPE_RAYDAT	: break;
+		case HDSPE_AIO		: break;
+		case HDSPE_AIO_PRO	: break;
+		default				: return -ENODEV;
+		}
 
 	/* (3) Save register values */
 	/* Save the necessary register values in hdspe struct */
@@ -715,7 +723,7 @@ static int __maybe_unused snd_hdspe_suspend(struct pci_dev *dev, pm_message_t st
 	/* Place the hardware into a low-power mode, not sure if that is available for HDSPe? */
 	/* Not according to debug output but unsure */
 
-	dev_dbg(&dev->dev, "Dry run of suspending HDSPe driver without PM ended\n");
+	dev_dbg(&dev->dev, "Suspending HDSPe driver ended\n");
 
 	return 0;
 }
@@ -734,12 +742,17 @@ static int __maybe_unused snd_hdspe_resume(struct pci_dev *dev)
 		return -ENODEV;
 	}
 
-	dev_dbg(hdspe->card->dev, "Dry run of resuming HDSPe driver without PM\n");
+	dev_dbg(hdspe->card->dev, "Resuming HDSPe driver\n");
 
 	/* (2) Reinitialize the chip */
 	/* Perform any necessary reinitialization steps after resume */
 	/* Unclear what HDSPe needs to have reinitialized? */
 	/* Init all HDSPe things like TCO, methods, tables, registers ... */
+
+	if (hdspe->io_type == HDSPE_AES) {
+		if (!hdspe_init_aes(hdspe))
+			dev_dbg(hdspe->card->dev, "Test init of AES\n");
+	}
 
 	snd_hdspe_work_start(hdspe);
 
@@ -772,9 +785,17 @@ static int __maybe_unused snd_hdspe_resume(struct pci_dev *dev)
 	 * needs hard reset
 	 */
 
-	//snd_power_change_state(card, SNDRV_CTL_POWER_D0);
+	switch (hdspe->io_type) {
+		case HDSPE_MADI		: snd_power_change_state(card, SNDRV_CTL_POWER_D0); break;
+		case HDSPE_MADIFACE	: break;
+		case HDSPE_AES		: break;
+		case HDSPE_RAYDAT	: break;
+		case HDSPE_AIO		: break;
+		case HDSPE_AIO_PRO	: break;
+		default				: return -ENODEV;
+		}
 
-	dev_dbg(&dev->dev, "Dry run of resuming HDSPe driver ended\n");
+	dev_dbg(&dev->dev, "Resuming HDSPe driver ended\n");
 	return 0;
 }
 

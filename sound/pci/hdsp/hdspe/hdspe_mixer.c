@@ -21,7 +21,7 @@
    mixer is write only on hardware so we have to cache him for read
    each fader is a u32, but uses only the first 16 bit */
 
-static inline u16 hdspe_read_in_gain(struct hdspe * hdspe, unsigned int chan,
+static inline u16 hdspe_read_in_gain(struct hdspe *hdspe, unsigned int chan,
 				     unsigned int in)
 {
 	if (chan >= HDSPE_MIXER_CHANNELS || in >= HDSPE_MIXER_CHANNELS)
@@ -30,7 +30,7 @@ static inline u16 hdspe_read_in_gain(struct hdspe * hdspe, unsigned int chan,
 	return hdspe->mixer->ch[chan].in[in];
 }
 
-static inline u16 hdspe_read_pb_gain(struct hdspe * hdspe, unsigned int chan,
+static inline u16 hdspe_read_pb_gain(struct hdspe *hdspe, unsigned int chan,
 				     unsigned int pb)
 {
 	if (chan >= HDSPE_MIXER_CHANNELS || pb >= HDSPE_MIXER_CHANNELS)

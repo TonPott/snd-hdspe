@@ -108,10 +108,6 @@ static irqreturn_t snd_hdspe_interrupt(int irq, void *dev_id)
 {
 	struct hdspe *hdspe = (struct hdspe *) dev_id;
 	int i, audio, midi, schedule = 0;
-	if (hdspe->irq_count % 1000 == 0) {
-		dev_dbg(hdspe->card->dev, "Int: #%08d  status0:\t0x%08x\n", hdspe->irq_count,
-				hdspe_read_status0(hdspe).raw);
-	}
 
 	hdspe->reg.status0 = hdspe_read_status0_nocache(hdspe);
 
@@ -133,6 +129,14 @@ static irqreturn_t snd_hdspe_interrupt(int irq, void *dev_id)
 		);
 	hdspe->last_interrupt_time = now;
 #endif /*TIME_INTERRUPT_INTERVAL*/
+
+	if (hdspe->irq_count % 1000 == 0) {
+		dev_dbg(hdspe->card->dev, "Int=#%08d BUF_ID=%u %s\n",
+			hdspe->irq_count,
+			hdspe->reg.status0.common.BUF_ID,
+			audio ? "AUDIO " : ""
+			);
+	}
 
 	if (!audio && !midi)
 		return IRQ_NONE;
@@ -213,6 +217,9 @@ static void hdspe_start_interrupts(struct hdspe* hdspe)
 	hdspe->reg.control.common.IE_AUDIO = true;
 
 	hdspe_write_control(hdspe);
+
+	dev_dbg(hdspe->card->dev, "Started interrupts\n");
+
 }
 
 static void hdspe_stop_interrupts(struct hdspe* hdspe)
@@ -222,6 +229,8 @@ static void hdspe_stop_interrupts(struct hdspe* hdspe)
 	hdspe->reg.control.common.IE_AUDIO = false;
 	hdspe->reg.control.raw &= ~hdspe->midiInterruptEnableMask;
 	hdspe_write_control(hdspe);
+
+	dev_dbg(hdspe->card->dev, "Stopped interrupts\n");
 }
 
 /* Create ALSA devices, after hardware initialization */
@@ -712,9 +721,9 @@ static int __maybe_unused snd_hdspe_suspend(struct pci_dev *dev, pm_message_t st
 	/* (3) Save register values */
 	/* Save the necessary register values in hdspe struct */
 
-	dev_dbg(hdspe->card->dev, "System sample rate before suspend: %u\n", hdspe_read_system_sample_rate(hdspe));
+	//dev_dbg(hdspe->card->dev, "System sample rate before suspend: %u\n", hdspe_read_system_sample_rate(hdspe));
 
-	dev_dbg(hdspe->card->dev, "Suspend \tstatus0:\t0x%08x\n", hdspe_read_status0(hdspe).raw);
+	//dev_dbg(hdspe->card->dev, "Suspend \tstatus0:\t0x%08x\n", hdspe_read_status0(hdspe).common);
 
 	spin_lock_irq(&hdspe->lock);
 	hdspe->savedRegisters = hdspe->reg;
@@ -728,7 +737,7 @@ static int __maybe_unused snd_hdspe_suspend(struct pci_dev *dev, pm_message_t st
 	/* Place the hardware into a low-power mode, not sure if that is available for HDSPe? */
 	/* Not according to debug output but unsure */
 
-	dev_dbg(hdspe->card->dev, "Suspended       status0:\t0x%08x\n", hdspe_read_status0(hdspe).raw);
+	//dev_dbg(hdspe->card->dev, "Suspended       status0:\t0x%08x\n", hdspe_read_status0(hdspe).common);
 	dev_dbg(&dev->dev, "Suspending HDSPe driver ended\n");
 
 	return 0;
@@ -755,6 +764,8 @@ static int __maybe_unused snd_hdspe_resume(struct pci_dev *dev)
 	/* Unclear what HDSPe needs to have reinitialized? */
 	/* Init all HDSPe things like TCO, methods, tables, registers ... */
 
+	hdspe_read_status0_nocache(hdspe);		/* BUF_ID gets reset to 0, needs re-init ? */
+
 	snd_hdspe_work_start(hdspe);
 
 	/* (3) Restore saved register values */
@@ -767,11 +778,7 @@ static int __maybe_unused snd_hdspe_resume(struct pci_dev *dev)
 	/* Write restored register values to the hardware */
 	hdspe_write_settings(hdspe);
 	hdspe_write_control(hdspe);
-	hdspe_write_pll_freq(hdspe);	/* required to keep sample rate */
-
-	dev_dbg(hdspe->card->dev, "System sample rate after resume: %u\n", hdspe_read_system_sample_rate(hdspe));
-
-	dev_dbg(hdspe->card->dev, "Resume  \tstatus0:\t0x%08x\n", hdspe_read_status0(hdspe).raw);
+	hdspe_write_pll_freq(hdspe);	/* keep sample rate */
 
 	/* Resume mixer? hdspe_init_mixer just allocates memory ... */
 
@@ -798,8 +805,6 @@ static int __maybe_unused snd_hdspe_resume(struct pci_dev *dev)
 		case HDSPE_AIO_PRO	: break;
 		default				: return -ENODEV;
 		}
-
-	dev_dbg(hdspe->card->dev, "Resumed \tstatus0:\t0x%08x\n", hdspe_read_status0(hdspe).raw);
 
 	dev_dbg(&dev->dev, "Resuming HDSPe driver ended\n");
 	return 0;

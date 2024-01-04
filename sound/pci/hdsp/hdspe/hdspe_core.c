@@ -109,7 +109,8 @@ static irqreturn_t snd_hdspe_interrupt(int irq, void *dev_id)
 	struct hdspe *hdspe = (struct hdspe *) dev_id;
 	int i, audio, midi, schedule = 0;
 	if (hdspe->irq_count % 1000 == 0) {
-		dev_dbg(hdspe->card->dev, "Interrupt #%d received\n", hdspe->irq_count);
+		dev_dbg(hdspe->card->dev, "Int: #%08d  status0:\t0x%08x\n", hdspe->irq_count,
+				hdspe_read_status0(hdspe).raw);
 	}
 
 	hdspe->reg.status0 = hdspe_read_status0_nocache(hdspe);
@@ -137,9 +138,9 @@ static irqreturn_t snd_hdspe_interrupt(int irq, void *dev_id)
 		return IRQ_NONE;
 
 	if (audio) {
-		if (hdspe->irq_count % 1000 == 0) {
-			dev_dbg(hdspe->card->dev, "Audio interrupt \n");
-		}
+		//if (hdspe->irq_count % 1000 == 0) {
+		//	dev_dbg(hdspe->card->dev, "Audio interrupt \n");
+		//}
 
 		hdspe_write(hdspe, HDSPE_interruptConfirmation, 0);
 		hdspe->irq_count++;
@@ -168,9 +169,9 @@ static irqreturn_t snd_hdspe_interrupt(int irq, void *dev_id)
 	}
 
 	if (midi) {
-		if (hdspe->irq_count % 1000 == 0) {
-			dev_dbg(hdspe->card->dev, "MIDI interrupt \n");
-		}
+		//if (hdspe->irq_count % 1000 == 0) {
+		//	dev_dbg(hdspe->card->dev, "MIDI interrupt \n");
+		//}
 
 		schedule = 0;
 		for (i = 0; i < hdspe->midiPorts; i++) {
@@ -419,6 +420,8 @@ static int snd_hdspe_init_all(struct hdspe *hdspe)
 	err = hdspe_init(hdspe);
 	if (err < 0)
 		return err;
+
+	dev_dbg(hdspe->card->dev, "HDBG: snd_hdspe_init_all\n");
 
 	return 0;
 }
@@ -675,6 +678,7 @@ static void snd_hdspe_remove(struct pci_dev *pci)
 
 static int __maybe_unused snd_hdspe_suspend(struct pci_dev *dev, pm_message_t state)
 {
+
 	/* (1) Accessing HDSPe data */
 	struct snd_card *card = pci_get_drvdata(dev);
 	if (!card) {
@@ -690,10 +694,9 @@ static int __maybe_unused snd_hdspe_suspend(struct pci_dev *dev, pm_message_t st
 
 	/* (2) Change ALSA power state */
 
-	/* TODO: snd_power_change_state() only apparently exists for historical reasons?
-	 * Maybe PCI PM commands instead?
+	/*
 	 * PCIe compliance means minimal supported should be D0 and D3hot therefore don't need support list?
-	 * Call doesn't work on AES hardware even to D0
+	 * But still unsure why call doesn't work on AES hardware even to D0
 	 */
 
 	switch (hdspe->io_type) {
@@ -711,6 +714,8 @@ static int __maybe_unused snd_hdspe_suspend(struct pci_dev *dev, pm_message_t st
 
 	dev_dbg(hdspe->card->dev, "System sample rate before suspend: %u\n", hdspe_read_system_sample_rate(hdspe));
 
+	dev_dbg(hdspe->card->dev, "Suspend \tstatus0:\t0x%08x\n", hdspe_read_status0(hdspe).raw);
+
 	spin_lock_irq(&hdspe->lock);
 	hdspe->savedRegisters = hdspe->reg;
 	spin_unlock_irq(&hdspe->lock);
@@ -723,6 +728,7 @@ static int __maybe_unused snd_hdspe_suspend(struct pci_dev *dev, pm_message_t st
 	/* Place the hardware into a low-power mode, not sure if that is available for HDSPe? */
 	/* Not according to debug output but unsure */
 
+	dev_dbg(hdspe->card->dev, "Suspended       status0:\t0x%08x\n", hdspe_read_status0(hdspe).raw);
 	dev_dbg(&dev->dev, "Suspending HDSPe driver ended\n");
 
 	return 0;
@@ -749,11 +755,6 @@ static int __maybe_unused snd_hdspe_resume(struct pci_dev *dev)
 	/* Unclear what HDSPe needs to have reinitialized? */
 	/* Init all HDSPe things like TCO, methods, tables, registers ... */
 
-	if (hdspe->io_type == HDSPE_AES) {
-		if (!hdspe_init_aes(hdspe))
-			dev_dbg(hdspe->card->dev, "Test init of AES\n");
-	}
-
 	snd_hdspe_work_start(hdspe);
 
 	/* (3) Restore saved register values */
@@ -770,6 +771,8 @@ static int __maybe_unused snd_hdspe_resume(struct pci_dev *dev)
 
 	dev_dbg(hdspe->card->dev, "System sample rate after resume: %u\n", hdspe_read_system_sample_rate(hdspe));
 
+	dev_dbg(hdspe->card->dev, "Resume  \tstatus0:\t0x%08x\n", hdspe_read_status0(hdspe).raw);
+
 	/* Resume mixer? hdspe_init_mixer just allocates memory ... */
 
 	/* (5) Restart the chip or hardware */
@@ -781,8 +784,9 @@ static int __maybe_unused snd_hdspe_resume(struct pci_dev *dev)
 
 	/* (6) Return ALSA to full power state */
 
-	/* This call to D0 resumes most of system on AES hardware and allows brief attempt to swap TTY but then
-	 * needs hard reset
+	/*
+	 * PCIe compliance means minimal supported should be D0 and D3hot therefore don't need support list?
+	 * But still unsure why call doesn't work on AES hardware even to D0
 	 */
 
 	switch (hdspe->io_type) {
@@ -794,6 +798,8 @@ static int __maybe_unused snd_hdspe_resume(struct pci_dev *dev)
 		case HDSPE_AIO_PRO	: break;
 		default				: return -ENODEV;
 		}
+
+	dev_dbg(hdspe->card->dev, "Resumed \tstatus0:\t0x%08x\n", hdspe_read_status0(hdspe).raw);
 
 	dev_dbg(&dev->dev, "Resuming HDSPe driver ended\n");
 	return 0;

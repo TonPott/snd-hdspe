@@ -130,12 +130,20 @@ static irqreturn_t snd_hdspe_interrupt(int irq, void *dev_id)
 	hdspe->last_interrupt_time = now;
 #endif /*TIME_INTERRUPT_INTERVAL*/
 
-	if (hdspe->irq_count % 1000 == 0) {
+	if (hdspe->irq_count % 4000 == 0) {
 		dev_dbg(hdspe->card->dev, "Int=#%08d BUF_ID=%u %s\n",
 			hdspe->irq_count,
 			hdspe->reg.status0.common.BUF_ID,
 			audio ? "AUDIO " : ""
 			);
+	}
+
+	if ((hdspe->irq_count+1) % 4000 == 0) {
+			dev_dbg(hdspe->card->dev, "Int=#%08d BUF_ID=%u %s\n",
+				hdspe->irq_count,
+				hdspe->reg.status0.common.BUF_ID,
+				audio ? "AUDIO " : ""
+				);
 	}
 
 	if (!audio && !midi)
@@ -704,8 +712,8 @@ static int __maybe_unused snd_hdspe_suspend(struct pci_dev *dev, pm_message_t st
 	/* (2) Change ALSA power state */
 
 	/*
-	 * PCIe compliance means minimal supported should be D0 and D3hot therefore don't need support list?
-	 * But still unsure why call doesn't work on AES hardware even to D0
+	 * PCIe compliance means minimal supported should be D0 and D3hot therefore shouldn't need support list?
+	 * But still unsure why call doesn't work on AES hardware even to D0. TODO: retest in different MB
 	 */
 
 	switch (hdspe->io_type) {
@@ -721,10 +729,6 @@ static int __maybe_unused snd_hdspe_suspend(struct pci_dev *dev, pm_message_t st
 	/* (3) Save register values */
 	/* Save the necessary register values in hdspe struct */
 
-	//dev_dbg(hdspe->card->dev, "System sample rate before suspend: %u\n", hdspe_read_system_sample_rate(hdspe));
-
-	//dev_dbg(hdspe->card->dev, "Suspend \tstatus0:\t0x%08x\n", hdspe_read_status0(hdspe).common);
-
 	spin_lock_irq(&hdspe->lock);
 	hdspe->savedRegisters = hdspe->reg;
 	spin_unlock_irq(&hdspe->lock);
@@ -737,7 +741,6 @@ static int __maybe_unused snd_hdspe_suspend(struct pci_dev *dev, pm_message_t st
 	/* Place the hardware into a low-power mode, not sure if that is available for HDSPe? */
 	/* Not according to debug output but unsure */
 
-	//dev_dbg(hdspe->card->dev, "Suspended       status0:\t0x%08x\n", hdspe_read_status0(hdspe).common);
 	dev_dbg(&dev->dev, "Suspending HDSPe driver ended\n");
 
 	return 0;
@@ -745,6 +748,8 @@ static int __maybe_unused snd_hdspe_suspend(struct pci_dev *dev, pm_message_t st
 
 static int __maybe_unused snd_hdspe_resume(struct pci_dev *dev)
 {
+
+	int err = 0;
 
 	/* (1) Accessing HDSPe data */
 	struct snd_card *card = pci_get_drvdata(dev);
@@ -764,8 +769,6 @@ static int __maybe_unused snd_hdspe_resume(struct pci_dev *dev)
 	/* Unclear what HDSPe needs to have reinitialized? */
 	/* Init all HDSPe things like TCO, methods, tables, registers ... */
 
-	hdspe_read_status0_nocache(hdspe);		/* BUF_ID gets reset to 0, needs re-init ? */
-
 	snd_hdspe_work_start(hdspe);
 
 	/* (3) Restore saved register values */
@@ -778,7 +781,16 @@ static int __maybe_unused snd_hdspe_resume(struct pci_dev *dev)
 	/* Write restored register values to the hardware */
 	hdspe_write_settings(hdspe);
 	hdspe_write_control(hdspe);
-	hdspe_write_pll_freq(hdspe);	/* keep sample rate */
+
+	hdspe_write_pll_freq(hdspe);			/* keep sample rate */
+	hdspe_read_status0_nocache(hdspe);		/* BUF_ID gets reset to 0, unsure if needs re-init ? */
+											/* toggles on interrupt, does it need to continue as-is? */
+											/* even int = BUF_ID=1 , odd int = BUF_ID=0 */
+
+	hdspe_write_internal_pitch(hdspe, 1000000); // init reg.pll_freq
+
+	// Set the channel map according the initial speed mode */
+	hdspe_set_channel_map(hdspe, hdspe_speed_mode(hdspe));
 
 	/* Resume mixer? hdspe_init_mixer just allocates memory ... */
 
@@ -787,13 +799,14 @@ static int __maybe_unused snd_hdspe_resume(struct pci_dev *dev)
 	// Technically, this redundantly sets START and IE_AUDIO in 
 	// reg.control.common to true, which already happened via 
 	// hdspe->savedRegisters
+
 	hdspe_start_interrupts(hdspe);
 
 	/* (6) Return ALSA to full power state */
 
 	/*
-	 * PCIe compliance means minimal supported should be D0 and D3hot therefore don't need support list?
-	 * But still unsure why call doesn't work on AES hardware even to D0
+	 * PCIe compliance means minimal supported should be D0 and D3hot therefore shouldn't need support list?
+	 * But still unsure why call doesn't work on AES hardware even to D0. TODO: retest in different MB
 	 */
 
 	switch (hdspe->io_type) {

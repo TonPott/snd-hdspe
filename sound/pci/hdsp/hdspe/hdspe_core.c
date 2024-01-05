@@ -130,20 +130,22 @@ static irqreturn_t snd_hdspe_interrupt(int irq, void *dev_id)
 	hdspe->last_interrupt_time = now;
 #endif /*TIME_INTERRUPT_INTERVAL*/
 
-	if (hdspe->irq_count % 4000 == 0) {
-		dev_dbg(hdspe->card->dev, "Int=#%08d BUF_ID=%u %s\n",
+	if (hdspe->irq_count % 100 == 0) {
+		dev_dbg(hdspe->card->dev, "Int=#%08d BUF_ID=%u BUF_PTR=%05u %s\n",
 			hdspe->irq_count,
 			hdspe->reg.status0.common.BUF_ID,
+			le16_to_cpu(hdspe->reg.status0.common.BUF_PTR)<<6,
 			audio ? "AUDIO " : ""
 			);
 	}
 
-	if ((hdspe->irq_count+1) % 4000 == 0) {
-			dev_dbg(hdspe->card->dev, "Int=#%08d BUF_ID=%u %s\n",
-				hdspe->irq_count,
-				hdspe->reg.status0.common.BUF_ID,
-				audio ? "AUDIO " : ""
-				);
+	if ((hdspe->irq_count+1) % 100 == 0) {
+		dev_dbg(hdspe->card->dev, "Int=#%08d BUF_ID=%u BUF_PTR=%05u %s\n",
+			hdspe->irq_count,
+			hdspe->reg.status0.common.BUF_ID,
+			le16_to_cpu(hdspe->reg.status0.common.BUF_PTR)<<6,
+			audio ? "AUDIO " : ""
+			);
 	}
 
 	if (!audio && !midi)
@@ -438,7 +440,7 @@ static int snd_hdspe_init_all(struct hdspe *hdspe)
 	if (err < 0)
 		return err;
 
-	dev_dbg(hdspe->card->dev, "HDBG: snd_hdspe_init_all\n");
+	dev_dbg(hdspe->card->dev, "snd_hdspe_init_all()\n");
 
 	return 0;
 }
@@ -749,8 +751,6 @@ static int __maybe_unused snd_hdspe_suspend(struct pci_dev *dev, pm_message_t st
 static int __maybe_unused snd_hdspe_resume(struct pci_dev *dev)
 {
 
-	int err = 0;
-
 	/* (1) Accessing HDSPe data */
 	struct snd_card *card = pci_get_drvdata(dev);
 	if (!card) {
@@ -783,14 +783,6 @@ static int __maybe_unused snd_hdspe_resume(struct pci_dev *dev)
 	hdspe_write_control(hdspe);
 
 	hdspe_write_pll_freq(hdspe);			/* keep sample rate */
-	hdspe_read_status0_nocache(hdspe);		/* BUF_ID gets reset to 0, unsure if needs re-init ? */
-											/* toggles on interrupt, does it need to continue as-is? */
-											/* even int = BUF_ID=1 , odd int = BUF_ID=0 */
-
-	hdspe_write_internal_pitch(hdspe, 1000000); // init reg.pll_freq
-
-	// Set the channel map according the initial speed mode */
-	hdspe_set_channel_map(hdspe, hdspe_speed_mode(hdspe));
 
 	/* Resume mixer? hdspe_init_mixer just allocates memory ... */
 

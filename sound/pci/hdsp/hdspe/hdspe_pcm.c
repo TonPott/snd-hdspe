@@ -29,7 +29,6 @@
 #define HDSPE_DMA_AREA_BYTES (HDSPE_MAX_CHANNELS * HDSPE_CHANNEL_BUFFER_BYTES)
 #define HDSPE_DMA_AREA_KILOBYTES (HDSPE_DMA_AREA_BYTES/1024)
 
-
 /*------------------------------------------------------------
    memory interface
  ------------------------------------------------------------*/
@@ -256,6 +255,9 @@ static int snd_hdspe_reset(struct snd_pcm_substream *substream)
 			}
 		}
 	}
+
+	dev_dbg(hdspe->card->dev,"snd_hdspe_reset()\n");
+
 	return 0;
 }
 
@@ -278,6 +280,8 @@ static int snd_hdspe_hw_params(struct snd_pcm_substream *substream,
 	int i;
 	pid_t this_pid;
 	pid_t other_pid;
+
+	dev_dbg(hdspe->card->dev,"snd_hdspe_hw_params() started\n");
 
 	spin_lock_irq(&hdspe->lock);
 
@@ -417,6 +421,8 @@ static int snd_hdspe_hw_params(struct snd_pcm_substream *substream,
 	snd_hdspe_set_float_format(
 		hdspe, params_format(params) == SNDRV_PCM_FORMAT_FLOAT_LE);
 
+	dev_dbg(hdspe->card->dev,"snd_hdspe_hw_params() ended\n");
+
 	return 0;
 }
 
@@ -440,6 +446,8 @@ static int snd_hdspe_hw_free(struct snd_pcm_substream *substream)
 	}
 
 	snd_pcm_lib_free_pages(substream);
+
+	dev_dbg(hdspe->card->dev,"snd_hdspe_hw_free()\n");
 
 	return 0;
 }
@@ -516,25 +524,36 @@ static int snd_hdspe_trigger(struct snd_pcm_substream *substream, int cmd)
 	struct hdspe *hdspe = snd_pcm_substream_chip(substream);
 	struct snd_pcm_substream *other;
 	int running;
-	int err;
 
 	spin_lock(&hdspe->lock);
-	dev_dbg(hdspe->card->dev, "Trigger received with %d\n", cmd);
-
-	if (cmd == SNDRV_PCM_TRIGGER_RESUME){
-		err = snd_hdspe_reset(substream);
-	}
 
 	running = hdspe->running;
+
 	switch (cmd) {
 	case SNDRV_PCM_TRIGGER_START:
-	case SNDRV_PCM_TRIGGER_RESUME:
+		dev_dbg(hdspe->card->dev, "SNDRV_PCM_TRIGGER_START\n");
 		running |= 1 << substream->stream;
 		break;
+
+	case SNDRV_PCM_TRIGGER_RESUME:
+		dev_dbg(hdspe->card->dev, "SNDRV_PCM_TRIGGER_RESUME\n");
+		dev_dbg(hdspe->card->dev, "Sample buffer for playback is at %p\n",
+				hdspe->playback_buffer);
+		running |= 1 << substream->stream;
+		break;
+
 	case SNDRV_PCM_TRIGGER_STOP:
-	case SNDRV_PCM_TRIGGER_SUSPEND:
+		dev_dbg(hdspe->card->dev, "SNDRV_PCM_TRIGGER_STOP\n");
 		running &= ~(1 << substream->stream);
 		break;
+
+	case SNDRV_PCM_TRIGGER_SUSPEND:
+		dev_dbg(hdspe->card->dev, "SNDRV_PCM_TRIGGER_SUSPEND\n");
+		dev_dbg(hdspe->card->dev, "Sample buffer for playback is at %p\n",
+				hdspe->playback_buffer);
+		running &= ~(1 << substream->stream);
+		break;
+
 	default:
 		snd_BUG();
 		spin_unlock(&hdspe->lock);
@@ -572,20 +591,32 @@ static int snd_hdspe_trigger(struct snd_pcm_substream *substream, int cmd)
 			hdspe_silence_playback(hdspe);
 	}
 _ok:
+
 	snd_pcm_trigger_done(substream, substream);
+
 	// Since we have audio interrupts enabled all the time, 
 	// no explicit start or stop is necessary
+
+	// But if interrupts are stopped during suspend does this need handling?
+	// does the memory allocated need to be freed or reset function called?
+
 	hdspe->running = running;
 	spin_unlock(&hdspe->lock);
 
 	snd_ctl_notify(hdspe->card, SNDRV_CTL_EVENT_MASK_VALUE,
 		       hdspe->cid.running);
 	
+	dev_dbg(hdspe->card->dev,"snd_hdspe_trigger()\n");
+
 	return 0;
 }
 
 static int snd_hdspe_prepare(struct snd_pcm_substream *substream)
 {
+	struct hdspe *hdspe = snd_pcm_substream_chip(substream);
+
+	dev_dbg(hdspe->card->dev,"snd_hdspe_prepare()\n");
+
 	return 0;
 }
 
@@ -957,6 +988,8 @@ int snd_hdspe_create_pcm(struct snd_card *card,
 		return err;
 
 	hdspe_set_period_size(hdspe);
+
+	dev_dbg(hdspe->card->dev,"snd_hdspe_create_pcm()\n");
 
 	return 0;
 }

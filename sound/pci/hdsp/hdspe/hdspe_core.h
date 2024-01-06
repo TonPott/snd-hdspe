@@ -13,7 +13,7 @@
 /* TODO: undefine in production version */
 #define DEBUG
 #define CONFIG_SND_DEBUG
-//#define TIME_INTERRUPT_INTERVAL
+#define TIME_INTERRUPT_INTERVAL
 #define DAW_MODE
 //#define PASSTHROUGH_MODE
 

@@ -116,11 +116,12 @@ static irqreturn_t snd_hdspe_interrupt(int irq, void *dev_id)
 
 #ifdef TIME_INTERRUPT_INTERVAL
 	u64 now = ktime_get_raw_fast_ns();
-	dev_dbg(hdspe->card->dev, "snd_hdspe_interrupt %llu us LAT=%d BUF_ID=%u BUF_PTR=%05u %s%s%s%s%s\n",
+	dev_dbg(hdspe->card->dev, "snd_hdspe_interrupt %10llu us LAT=%d BUF_ID=%u BUF_PTR=%05u STATUS0=%8x %s%s%s%s%s\n",
 		(now - hdspe->last_interrupt_time) / 1000,
 		hdspe->reg.control.common.LAT,
 		hdspe->reg.status0.common.BUF_ID,
 		le16_to_cpu(hdspe->reg.status0.common.BUF_PTR)<<6,
+		hdspe->reg.status0.raw,
 		audio ? "AUDIO " : "",
 		hdspe->midiPorts>0 && (hdspe->reg.status0.raw & hdspe->midi[0].irq) ? "MIDI1 " : "",
 		hdspe->midiPorts>1 && (hdspe->reg.status0.raw & hdspe->midi[1].irq) ? "MIDI2 " : "",
@@ -129,24 +130,6 @@ static irqreturn_t snd_hdspe_interrupt(int irq, void *dev_id)
 		);
 	hdspe->last_interrupt_time = now;
 #endif /*TIME_INTERRUPT_INTERVAL*/
-
-	if (hdspe->irq_count % 100 == 0) {
-		dev_dbg(hdspe->card->dev, "Int=#%08d BUF_ID=%u BUF_PTR=%05u %s\n",
-			hdspe->irq_count,
-			hdspe->reg.status0.common.BUF_ID,
-			le16_to_cpu(hdspe->reg.status0.common.BUF_PTR)<<6,
-			audio ? "AUDIO " : ""
-			);
-	}
-
-	if ((hdspe->irq_count+1) % 100 == 0) {
-		dev_dbg(hdspe->card->dev, "Int=#%08d BUF_ID=%u BUF_PTR=%05u %s\n",
-			hdspe->irq_count,
-			hdspe->reg.status0.common.BUF_ID,
-			le16_to_cpu(hdspe->reg.status0.common.BUF_PTR)<<6,
-			audio ? "AUDIO " : ""
-			);
-	}
 
 	if (!audio && !midi)
 		return IRQ_NONE;

@@ -554,11 +554,21 @@ static int snd_hdspe_trigger(struct snd_pcm_substream *substream, int cmd)
 		running &= ~(1 << substream->stream);
 		break;
 
+	case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
+		dev_dbg(hdspe->card->dev, "SNDRV_PCM_TRIGGER_PAUSE_PUSH\n");
+		break;
+
+	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
+		dev_dbg(hdspe->card->dev, "SNDRV_PCM_TRIGGER_PAUSE_RELEASE\n");
+		break;
+
 	default:
+		dev_dbg(hdspe->card->dev, "Unhandled trigger received with %d\n", cmd);
 		snd_BUG();
 		spin_unlock(&hdspe->lock);
 		return -EINVAL;
 	}
+
 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
 		other = hdspe->capture_substream;
 	else
@@ -626,6 +636,7 @@ static const struct snd_pcm_hardware snd_hdspe_playback_subinfo = {
 		 SNDRV_PCM_INFO_NONINTERLEAVED |
 		 SNDRV_PCM_INFO_SYNC_START |
 		 SNDRV_PCM_INFO_RESUME |
+		 SNDRV_PCM_INFO_PAUSE |
 		 SNDRV_PCM_INFO_DOUBLE),
 	.formats = SNDRV_PCM_FMTBIT_S32_LE,
 //	.formats = SNDRV_PCM_FMTBIT_FLOAT_LE,	
@@ -653,7 +664,8 @@ static const struct snd_pcm_hardware snd_hdspe_capture_subinfo = {
 		 SNDRV_PCM_INFO_MMAP_VALID |
 		 SNDRV_PCM_INFO_NONINTERLEAVED |
 		 SNDRV_PCM_INFO_SYNC_START | 
-		 SNDRV_PCM_INFO_RESUME),
+		 SNDRV_PCM_INFO_RESUME |
+		 SNDRV_PCM_INFO_PAUSE),
 	.formats = SNDRV_PCM_FMTBIT_S32_LE,
 //	.formats = SNDRV_PCM_FMTBIT_FLOAT_LE,
 	.rates = (SNDRV_PCM_RATE_32000 |

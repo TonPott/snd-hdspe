@@ -116,17 +116,12 @@ static irqreturn_t snd_hdspe_interrupt(int irq, void *dev_id)
 
 #ifdef TIME_INTERRUPT_INTERVAL
 	u64 now = ktime_get_raw_fast_ns();
-	dev_dbg(hdspe->card->dev, "snd_hdspe_interrupt %10llu us LAT=%d BUF_ID=%u BUF_PTR=%05u STATUS0=%8x %s%s%s%s%s\n",
+	dev_dbg(hdspe->card->dev, "snd_hdspe_interrupt %10llu us LAT=%d	BUF_PTR=%05u BUF_ID=%u %s\n",
 		(now - hdspe->last_interrupt_time) / 1000,
 		hdspe->reg.control.common.LAT,
-		hdspe->reg.status0.common.BUF_ID,
-		le16_to_cpu(hdspe->reg.status0.common.BUF_PTR)<<6,
-		hdspe->reg.status0.raw,
-		audio ? "AUDIO " : "",
-		hdspe->midiPorts>0 && (hdspe->reg.status0.raw & hdspe->midi[0].irq) ? "MIDI1 " : "",
-		hdspe->midiPorts>1 && (hdspe->reg.status0.raw & hdspe->midi[1].irq) ? "MIDI2 " : "",
-		hdspe->midiPorts>2 && (hdspe->reg.status0.raw & hdspe->midi[2].irq) ? "MIDI3 " : "",
-		hdspe->midiPorts>3 && (hdspe->reg.status0.raw & hdspe->midi[3].irq) ? "MIDI4 " : ""
+		le16_to_cpu(hdspe->reg.status0.aes.BUF_PTR)<<6,
+		hdspe->reg.status0.aes.BUF_ID,
+		audio ? "AUDIO " : ""
 		);
 	hdspe->last_interrupt_time = now;
 #endif /*TIME_INTERRUPT_INTERVAL*/
@@ -196,6 +191,9 @@ static irqreturn_t snd_hdspe_interrupt(int irq, void *dev_id)
  * are enabled when the MIDI devices are created. */
 static void hdspe_start_interrupts(struct hdspe* hdspe)
 {
+
+	dev_dbg(hdspe->card->dev, "hdspe_start_interrupts begin\n");
+
 	if (hdspe->tco) {
 		/* TCO MTC port is always the last one */
 		struct hdspe_midi *m = &hdspe->midi[hdspe->midiPorts-1];
@@ -211,19 +209,22 @@ static void hdspe_start_interrupts(struct hdspe* hdspe)
 
 	hdspe_write_control(hdspe);
 
-	dev_dbg(hdspe->card->dev, "Started interrupts\n");
+	dev_dbg(hdspe->card->dev, "hdspe_start_interrupts end\n");
 
 }
 
 static void hdspe_stop_interrupts(struct hdspe* hdspe)
 {
 	/* stop the audio, and cancel all interrupts */
+
+	dev_dbg(hdspe->card->dev, "hdspe_stop_interrupts begin\n");
+
 	hdspe->reg.control.common.START =
 	hdspe->reg.control.common.IE_AUDIO = false;
 	hdspe->reg.control.raw &= ~hdspe->midiInterruptEnableMask;
 	hdspe_write_control(hdspe);
 
-	dev_dbg(hdspe->card->dev, "Stopped interrupts\n");
+	dev_dbg(hdspe->card->dev, "hdspe_stop_interrupts end\n");
 }
 
 /* Create ALSA devices, after hardware initialization */

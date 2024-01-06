@@ -16,6 +16,7 @@
 #include <sound/pcm.h>
 #include <sound/pcm_params.h>
 
+#define DEBUG_FRAME_COUNT
 
 /* the size of a substream (1 mono data stream) */
 #define HDSPE_CHANNEL_BUFFER_SAMPLES  (16*1024)

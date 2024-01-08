@@ -119,8 +119,8 @@ static irqreturn_t snd_hdspe_interrupt(int irq, void *dev_id)
 	dev_dbg(hdspe->card->dev, "snd_hdspe_interrupt %10llu us LAT=%d	BUF_PTR=%05u BUF_ID=%u %s\n",
 		(now - hdspe->last_interrupt_time) / 1000,
 		hdspe->reg.control.common.LAT,
-		le16_to_cpu(hdspe->reg.status0.aes.BUF_PTR)<<6,
-		hdspe->reg.status0.aes.BUF_ID,
+		le16_to_cpu(hdspe->reg.status0.common.BUF_PTR)<<6,
+		hdspe->reg.status0.common.BUF_ID,
 		audio ? "AUDIO " : ""
 		);
 	hdspe->last_interrupt_time = now;
@@ -217,14 +217,12 @@ static void hdspe_stop_interrupts(struct hdspe* hdspe)
 {
 	/* stop the audio, and cancel all interrupts */
 
-	dev_dbg(hdspe->card->dev, "hdspe_stop_interrupts begin\n");
-
 	hdspe->reg.control.common.START =
 	hdspe->reg.control.common.IE_AUDIO = false;
 	hdspe->reg.control.raw &= ~hdspe->midiInterruptEnableMask;
 	hdspe_write_control(hdspe);
 
-	dev_dbg(hdspe->card->dev, "hdspe_stop_interrupts end\n");
+	dev_dbg(hdspe->card->dev, "hdspe_stop_interrupts()\n");
 }
 
 /* Create ALSA devices, after hardware initialization */

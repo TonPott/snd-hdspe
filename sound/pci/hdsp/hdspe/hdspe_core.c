@@ -721,6 +721,9 @@ static int __maybe_unused snd_hdspe_suspend(struct pci_dev *dev, pm_message_t st
 	/* Stop interrupts and halt any ongoing operations */
 	snd_hdspe_work_stop(hdspe);
 
+	if (hdspe->irq >= 0)
+		free_irq(hdspe->irq, (void *) hdspe);
+
 	/* (5) Enter low-power state */
 	/* Place the hardware into a low-power mode, not sure if that is available for HDSPe? */
 	/* Not according to debug output but unsure */
@@ -752,6 +755,16 @@ static int __maybe_unused snd_hdspe_resume(struct pci_dev *dev)
 	/* Init all HDSPe things like TCO, methods, tables, registers ... */
 
 	snd_hdspe_work_start(hdspe);
+
+	if (request_irq(hdspe->pci->irq, snd_hdspe_interrupt, IRQF_SHARED, KBUILD_MODNAME, hdspe)) {
+		dev_err(card->dev, "unable to use IRQ %d\n", hdspe->pci->irq);
+		return -EBUSY;
+	}
+
+	dev_dbg(hdspe->card->dev, "use IRQ %d\n", hdspe->pci->irq);
+
+	hdspe->irq = hdspe->pci->irq;
+	card->sync_irq = hdspe->irq;
 
 	/* (3) Restore saved register values */
 	/* Restore the register values saved during suspend */

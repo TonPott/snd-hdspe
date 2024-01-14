@@ -16,7 +16,7 @@
 #include <sound/pcm.h>
 #include <sound/pcm_params.h>
 
-#define DEBUG_FRAME_COUNT
+//#define DEBUG_FRAME_COUNT
 
 /* the size of a substream (1 mono data stream) */
 #define HDSPE_CHANNEL_BUFFER_SAMPLES  (16*1024)
@@ -220,6 +220,8 @@ static void hdspe_silence_playback(struct hdspe *hdspe)
 		memset(buf, 0, n);
 		buf += HDSPE_CHANNEL_BUFFER_BYTES;
 	}
+
+	dev_dbg(hdspe->card->dev, "hdspe_silence_playback()\n");
 }
 
 static snd_pcm_uframes_t snd_hdspe_hw_pointer(struct snd_pcm_substream
@@ -281,8 +283,6 @@ static int snd_hdspe_hw_params(struct snd_pcm_substream *substream,
 	int i;
 	pid_t this_pid;
 	pid_t other_pid;
-
-	dev_dbg(hdspe->card->dev,"snd_hdspe_hw_params() started\n");
 
 	spin_lock_irq(&hdspe->lock);
 
@@ -403,26 +403,26 @@ static int snd_hdspe_hw_params(struct snd_pcm_substream *substream,
 	}
 
 	/*
-	   dev_dbg(hdspe->card->dev,
-	   "Allocated sample buffer for %s at 0x%08X\n",
-	   substream->stream == SNDRV_PCM_STREAM_PLAYBACK ?
-	   "playback" : "capture",
-	   snd_pcm_sgbuf_get_addr(substream, 0));
-	   */
-	/*
-	   dev_dbg(hdspe->card->dev,
-	   "set_hwparams: %s %d Hz, %d channels, bs = %d\n",
-	   substream->stream == SNDRV_PCM_STREAM_PLAYBACK ?
-	   "playback" : "capture",
-	   params_rate(params), params_channels(params),
-	   params_buffer_size(params));
-	   */
+	dev_dbg(hdspe->card->dev,
+		"Allocated sample buffer for %s at 0x%08llX\n",
+		substream->stream == SNDRV_PCM_STREAM_PLAYBACK ?
+		"playback" : "capture",
+		snd_pcm_sgbuf_get_addr(substream, 0));
+
+
+	dev_dbg(hdspe->card->dev,
+		"set_hwparams: %s %d Hz, %d channels, bs = %d\n",
+		substream->stream == SNDRV_PCM_STREAM_PLAYBACK ?
+		"playback" : "capture",
+		params_rate(params), params_channels(params),
+		params_buffer_size(params));
+	*/
 
 	/* Switch to native float format if requested, s32le otherwise. */
 	snd_hdspe_set_float_format(
 		hdspe, params_format(params) == SNDRV_PCM_FORMAT_FLOAT_LE);
 
-	dev_dbg(hdspe->card->dev,"snd_hdspe_hw_params() ended\n");
+	dev_dbg(hdspe->card->dev,"snd_hdspe_hw_params()\n");
 
 	return 0;
 }
@@ -538,8 +538,6 @@ static int snd_hdspe_trigger(struct snd_pcm_substream *substream, int cmd)
 
 	case SNDRV_PCM_TRIGGER_RESUME:
 		dev_dbg(hdspe->card->dev, "SNDRV_PCM_TRIGGER_RESUME\n");
-		dev_dbg(hdspe->card->dev, "Sample buffer for playback is at %p\n",
-				hdspe->playback_buffer);
 		running |= 1 << substream->stream;
 		break;
 
@@ -550,8 +548,6 @@ static int snd_hdspe_trigger(struct snd_pcm_substream *substream, int cmd)
 
 	case SNDRV_PCM_TRIGGER_SUSPEND:
 		dev_dbg(hdspe->card->dev, "SNDRV_PCM_TRIGGER_SUSPEND\n");
-		dev_dbg(hdspe->card->dev, "Sample buffer for playback is at %p\n",
-				hdspe->playback_buffer);
 		running &= ~(1 << substream->stream);
 		break;
 
@@ -616,7 +612,7 @@ _ok:
 
 	snd_ctl_notify(hdspe->card, SNDRV_CTL_EVENT_MASK_VALUE,
 		       hdspe->cid.running);
-	
+
 	dev_dbg(hdspe->card->dev,"snd_hdspe_trigger()\n");
 
 	return 0;
@@ -664,9 +660,10 @@ static const struct snd_pcm_hardware snd_hdspe_capture_subinfo = {
 	.info = (SNDRV_PCM_INFO_MMAP |
 		 SNDRV_PCM_INFO_MMAP_VALID |
 		 SNDRV_PCM_INFO_NONINTERLEAVED |
-		 SNDRV_PCM_INFO_SYNC_START | 
+		 SNDRV_PCM_INFO_SYNC_START |
 		 SNDRV_PCM_INFO_RESUME |
-		 SNDRV_PCM_INFO_PAUSE),
+		 SNDRV_PCM_INFO_PAUSE
+		 ),
 	.formats = SNDRV_PCM_FMTBIT_S32_LE,
 //	.formats = SNDRV_PCM_FMTBIT_FLOAT_LE,
 	.rates = (SNDRV_PCM_RATE_32000 |

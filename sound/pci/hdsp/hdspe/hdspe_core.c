@@ -192,8 +192,6 @@ static irqreturn_t snd_hdspe_interrupt(int irq, void *dev_id)
 static void hdspe_start_interrupts(struct hdspe* hdspe)
 {
 
-	dev_dbg(hdspe->card->dev, "hdspe_start_interrupts begin\n");
-
 	if (hdspe->tco) {
 		/* TCO MTC port is always the last one */
 		struct hdspe_midi *m = &hdspe->midi[hdspe->midiPorts-1];
@@ -209,7 +207,7 @@ static void hdspe_start_interrupts(struct hdspe* hdspe)
 
 	hdspe_write_control(hdspe);
 
-	dev_dbg(hdspe->card->dev, "hdspe_start_interrupts end\n");
+	dev_dbg(hdspe->card->dev, "hdspe_start_interrupts()\n");
 
 }
 
@@ -695,20 +693,25 @@ static int __maybe_unused snd_hdspe_suspend(struct pci_dev *dev, pm_message_t st
 
 	/* (2) Change ALSA power state */
 
-	/*
-	 * PCIe compliance means minimal supported should be D0 and D3hot therefore shouldn't need support list?
-	 * But still unsure why call doesn't work on AES hardware even to D0. TODO: retest in different MB
-	 */
+	if (hdspe->io_type != HDSPE_AES)
+		snd_power_change_state(card, SNDRV_CTL_POWER_D3hot);
 
-	switch (hdspe->io_type) {
-		case HDSPE_MADI		: snd_power_change_state(card, SNDRV_CTL_POWER_D3hot); break;
-		case HDSPE_MADIFACE	: break;
-		case HDSPE_AES		: break;
-		case HDSPE_RAYDAT	: break;
-		case HDSPE_AIO		: break;
-		case HDSPE_AIO_PRO	: break;
+	//if (snd_power_wait(card) == 0) {
+		switch (hdspe->io_type) {
+		case HDSPE_MADI		: dev_dbg(hdspe->card->dev, "HDSPE_SUSPEND_MADI\n"); break;
+		case HDSPE_MADIFACE	: dev_dbg(hdspe->card->dev, "HDSPE_SUSPEND_MADIFACE\n"); break;
+		case HDSPE_AES		: dev_dbg(hdspe->card->dev, "HDSPE_SUSPEND_AES\n"); break;
+		case HDSPE_RAYDAT	: dev_dbg(hdspe->card->dev, "HDSPE_SUSPEND_RAYDAT\n"); break;
+		case HDSPE_AIO		: dev_dbg(hdspe->card->dev, "HDSPE_SUSPEND_AIO\n"); break;
+		case HDSPE_AIO_PRO	: dev_dbg(hdspe->card->dev, "HDSPE_SUSPEND_AIO_PRO\n"); break;
 		default				: return -ENODEV;
 		}
+	//}
+
+	//else{
+	//	dev_dbg(hdspe->card->dev, "HDSPE_SUSPEND_TIMEOUT\n");
+	//	return -ENODEV;
+	//}
 
 	/* (3) Save register values */
 	/* Save the necessary register values in hdspe struct */
@@ -728,7 +731,7 @@ static int __maybe_unused snd_hdspe_suspend(struct pci_dev *dev, pm_message_t st
 	/* Place the hardware into a low-power mode, not sure if that is available for HDSPe? */
 	/* Not according to debug output but unsure */
 
-	dev_dbg(&dev->dev, "Suspending HDSPe driver ended\n");
+	dev_dbg(&dev->dev, "snd_hdspe_suspend()\n");
 
 	return 0;
 }
@@ -776,7 +779,6 @@ static int __maybe_unused snd_hdspe_resume(struct pci_dev *dev)
 	/* Write restored register values to the hardware */
 	hdspe_write_settings(hdspe);
 	hdspe_write_control(hdspe);
-
 	hdspe_write_pll_freq(hdspe);			/* keep sample rate */
 
 	/* Resume mixer? hdspe_init_mixer just allocates memory ... */
@@ -791,22 +793,27 @@ static int __maybe_unused snd_hdspe_resume(struct pci_dev *dev)
 
 	/* (6) Return ALSA to full power state */
 
-	/*
-	 * PCIe compliance means minimal supported should be D0 and D3hot therefore shouldn't need support list?
-	 * But still unsure why call doesn't work on AES hardware even to D0. TODO: retest in different MB
-	 */
+	if (hdspe->io_type != HDSPE_AES)
+		snd_power_change_state(card, SNDRV_CTL_POWER_D0);
 
-	switch (hdspe->io_type) {
-		case HDSPE_MADI		: snd_power_change_state(card, SNDRV_CTL_POWER_D0); break;
-		case HDSPE_MADIFACE	: break;
-		case HDSPE_AES		: break;
-		case HDSPE_RAYDAT	: break;
-		case HDSPE_AIO		: break;
-		case HDSPE_AIO_PRO	: break;
+	//if (snd_power_wait(card) == 0) {
+		switch (hdspe->io_type) {
+		case HDSPE_MADI		: dev_dbg(hdspe->card->dev, "HDSPE_RESUME_MADI\n"); break;
+		case HDSPE_MADIFACE	: dev_dbg(hdspe->card->dev, "HDSPE_RESUME_MADIFACE\n"); break;
+		case HDSPE_AES		: dev_dbg(hdspe->card->dev, "HDSPE_RESUME_AES\n"); break;
+		case HDSPE_RAYDAT	: dev_dbg(hdspe->card->dev, "HDSPE_RESUME_RAYDAT\n"); break;
+		case HDSPE_AIO		: dev_dbg(hdspe->card->dev, "HDSPE_RESUME_AIO\n"); break;
+		case HDSPE_AIO_PRO	: dev_dbg(hdspe->card->dev, "HDSPE_RESUME_AIO_PRO\n"); break;
 		default				: return -ENODEV;
 		}
+	//}
 
-	dev_dbg(&dev->dev, "Resuming HDSPe driver ended\n");
+	//else{
+	//	dev_dbg(hdspe->card->dev, "HDSPE_RESUME_TIMEOUT\n");
+	//	return -ENODEV;
+	//}
+
+	dev_dbg(&dev->dev, "snd_hdspe_resume()\n");
 	return 0;
 }
 

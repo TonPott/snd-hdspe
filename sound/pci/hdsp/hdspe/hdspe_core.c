@@ -675,7 +675,8 @@ static void snd_hdspe_remove(struct pci_dev *pci)
 	snd_card_free(pci_get_drvdata(pci));
 }
 
-static int __maybe_unused snd_hdspe_suspend(struct pci_dev *dev, pm_message_t state)
+#ifdef CONFIG_PM
+static int snd_hdspe_suspend(struct pci_dev *dev, pm_message_t state)
 {
 
 	/* (1) Accessing HDSPe data */
@@ -693,7 +694,7 @@ static int __maybe_unused snd_hdspe_suspend(struct pci_dev *dev, pm_message_t st
 
 	/* (2) Change ALSA power state */
 
-	if (hdspe->io_type != HDSPE_AES)
+	//if (hdspe->io_type != HDSPE_AES)
 		snd_power_change_state(card, SNDRV_CTL_POWER_D3hot);
 
 	//if (snd_power_wait(card) == 0) {
@@ -736,7 +737,7 @@ static int __maybe_unused snd_hdspe_suspend(struct pci_dev *dev, pm_message_t st
 	return 0;
 }
 
-static int __maybe_unused snd_hdspe_resume(struct pci_dev *dev)
+static int snd_hdspe_resume(struct pci_dev *dev)
 {
 
 	/* (1) Accessing HDSPe data */
@@ -793,7 +794,7 @@ static int __maybe_unused snd_hdspe_resume(struct pci_dev *dev)
 
 	/* (6) Return ALSA to full power state */
 
-	if (hdspe->io_type != HDSPE_AES)
+	//if (hdspe->io_type != HDSPE_AES)
 		snd_power_change_state(card, SNDRV_CTL_POWER_D0);
 
 	//if (snd_power_wait(card) == 0) {
@@ -816,7 +817,98 @@ static int __maybe_unused snd_hdspe_resume(struct pci_dev *dev)
 	dev_dbg(&dev->dev, "snd_hdspe_resume()\n");
 	return 0;
 }
+/*
+static int snd_hdspe_prepare(struct pci_dev *dev)
+{
+	dev_dbg(&dev->dev, "snd_hdspe_prepare()\n");
+	return 0;
+}
 
+static int snd_hdspe_complete(struct pci_dev *dev)
+{
+	dev_dbg(&dev->dev, "snd_hdspe_complete()\n");
+	return 0;
+}
+
+static int snd_hdspe_freeze(struct pci_dev *dev)
+{
+	dev_dbg(&dev->dev, "snd_hdspe_freeze()\n");
+	return 0;
+}
+
+static int snd_hdspe_thaw(struct pci_dev *dev)
+{
+	dev_dbg(&dev->dev, "snd_hdspe_thaw()\n");
+	return 0;
+}
+
+static int snd_hdspe_poweroff(struct pci_dev *dev)
+{
+	dev_dbg(&dev->dev, "snd_hdspe_poweroff()\n");
+	return 0;
+}
+
+static int snd_hdspe_restore(struct pci_dev *dev)
+{
+	dev_dbg(&dev->dev, "snd_hdspe_restore()\n");
+		return 0;
+}
+
+static int snd_hdspe_suspend_noirq(struct pci_dev *dev)
+{
+	dev_dbg(&dev->dev, "snd_hdspe_suspend_noirq()\n");
+	return 0;
+}
+
+static int snd_hdspe_resume_noirq(struct pci_dev *dev)
+{
+	dev_dbg(&dev->dev, "snd_hdspe_resume_noirq()\n");
+	return 0;
+}
+
+static int snd_hdspe_freeze_noirq(struct pci_dev *dev)
+{
+	dev_dbg(&dev->dev, "snd_hdspe_freeze_noirq()\n");
+	return 0;
+}
+
+static int snd_hdspe_thaw_noirq(struct pci_dev *dev)
+{
+	dev_dbg(&dev->dev, "snd_hdspe_thaw_noirq()\n");
+	return 0;
+}
+
+static int snd_hdspe_poweroff_noirq(struct pci_dev *dev)
+{
+	dev_dbg(&dev->dev, "snd_hdspe_poweroff_noirq()\n");
+	return 0;
+}
+
+static int snd_hdspe_restore_noirq(struct pci_dev *dev)
+{
+	dev_dbg(&dev->dev, "snd_hdspe_restore_noirq()\n");
+	return 0;
+}
+
+static int snd_hdspe_runtime_suspend(struct pci_dev *dev)
+{
+	dev_dbg(&dev->dev, "snd_hdspe_runtime_suspend()\n");
+	return 0;
+}
+
+static int snd_hdspe_runtime_resume(struct pci_dev *dev)
+{
+	dev_dbg(&dev->dev, "snd_hdspe_runtime_resume()\n");
+	return 0;
+}
+
+static int snd_hdspe_runtime_idle(struct pci_dev *dev)
+{
+	dev_dbg(&dev->dev, "snd_hdspe_runtime_idle()\n");
+	return 0;
+}
+*/
+#endif /* CONFIG_PM */
 
 static struct pci_driver hdspe_driver = {
 	.name = KBUILD_MODNAME,
@@ -826,7 +918,24 @@ static struct pci_driver hdspe_driver = {
 #ifdef CONFIG_PM
 	.suspend = snd_hdspe_suspend,
 	.resume = snd_hdspe_resume,
-#endif
+	/*
+	.prepare = snd_hdspe_prepare,
+	.complete = snd_hdspe_complete,
+	.freeze = snd_hdspe_freeze,
+	.thaw = snd_hdspe_thaw,
+	.poweroff = snd_hdspe_poweroff,
+	.restore = snd_hdspe_restore,
+	.suspend_noirq = snd_hdspe_suspend_noirq,
+	.resume_noirq = snd_hdspe_resume_noirq,
+	.freeze_noirq = snd_hdspe_freeze_noirq,
+	.thaw_noirq = snd_hdspe_thaw_noirq,
+	.poweroff_noirq = snd_hdspe_poweroff_noirq,
+	.restore_noirq = snd_hdspe_restore_noirq,
+	.runtime_suspend = snd_hdspe_runtime_suspend,
+	.runtime_resume = snd_hdspe_runtime_resume,
+	.runtime_idle = snd_hdspe_runtime_idle,
+	*/
+#endif /* CONFIG_PM */
 };
 
 module_pci_driver(hdspe_driver);
